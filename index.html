@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spelling Bee Solver &mdash; Free NYT Word Finder &amp; Helper 2026</title>
+<meta name="description" content="Free NYT Spelling Bee solver. Enter your 7 letters to find every valid word instantly. Pangrams starred, definitions on tap, Genius threshold shown. No login.">
+<meta name="keywords" content="spelling bee solver, spelling bee helper, NYT spelling bee, spelling bee word finder, spelling bee hints, spelling bee pangram, spelling bee answers today, spelling bee genius, nyt spelling bee words, spelling bee archive">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.spellingbeefinder.com/">
+<meta property="og:title" content="Spelling Bee Solver &mdash; Free NYT Word Finder &amp; Helper">
+<meta property="og:description" content="Free NYT Spelling Bee solver. Enter 7 letters to find every valid word instantly. Pangrams starred, Genius threshold shown, definitions on tap. No login.">
+<meta property="og:url" content="https://www.spellingbeefinder.com/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.spellingbeefinder.com/icon-512.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Spelling Bee Solver &mdash; Free NYT Word Finder &amp; Helper">
+<meta name="twitter:description" content="Free NYT Spelling Bee solver. Find every valid word instantly. Pangrams starred, Genius threshold shown. Free, no login required.">
+<meta name="theme-color" content="#f59e0b">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4943534579898039" crossorigin="anonymous"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"Spelling Bee Solver","url":"https://www.spellingbeefinder.com/","description":"Free NYT Spelling Bee word finder and solver with pangram detection, hints mode, practice mode, daily archive, and word definitions.","applicationCategory":"GameApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does the Spelling Bee Finder work?","acceptedAnswer":{"@type":"Answer","text":"Tap each hexagon cell in the honeycomb and type its letter. The amber center cell is required in every valid word. Click Find All Words to get every valid word sorted by length, with pangrams labeled and definitions on tap."}},{"@type":"Question","name":"What is a pangram in the NYT Spelling Bee?","acceptedAnswer":{"@type":"Answer","text":"A pangram uses all 7 letters at least once and earns a 7-point bonus on top of its letter count. Finding the pangram is usually the key to reaching Genius rank. Our solver labels all pangrams with a star so they stand out immediately in results."}},{"@type":"Question","name":"How many points do I need to reach Genius in Spelling Bee?","acceptedAnswer":{"@type":"Answer","text":"Genius requires 70% of the total possible points for that day's puzzle. The threshold changes daily based on available words. Our solver shows the exact Genius cutoff at the top of every result set so you know exactly how many more words you need."}},{"@type":"Question","name":"What words count in the NYT Spelling Bee?","acceptedAnswer":{"@type":"Answer","text":"Valid words must be at least 4 letters, include the center letter, and use only the 7 given letters which may repeat. Proper nouns and hyphenated words are excluded. Four-letter words score 1 point, longer words score 1 per letter, and pangrams earn an extra 7 bonus points."}},{"@type":"Question","name":"Can I practice the Spelling Bee with any 7 letters?","acceptedAnswer":{"@type":"Answer","text":"Yes. Switch to Practice Mode and enter any 7-letter combination to find all possible words. This helps you learn high-value letter patterns and suffix families before playing the daily puzzle."}},{"@type":"Question","name":"How do I find the pangram in the Spelling Bee?","acceptedAnswer":{"@type":"Answer","text":"Look for words that use all 7 letters at least once. Start with suffixes like -TION, -MENT, -NESS, or -LING anchored to the required center letter. Our solver labels every pangram with a star the moment results appear."}},{"@type":"Question","name":"What is Queen Bee rank in the NYT Spelling Bee?","acceptedAnswer":{"@type":"Answer","text":"Queen Bee means you found every single valid word in the puzzle for 100% of possible points. Most daily puzzles have 30 to 60 valid words. Genius at 70% is the primary goal for most regular players."}}]}]}
+</script>
+<style>
+/* ═══════════ 1. TOKENS ═══════════ */
+:root{
+  --amber:#b45309;
+  --bee:#f59e0b;
+  --bee-dk:#e8940f;
+  --cream:#fefce8;
+  --cream-dk:#fef3c7;
+  --cream-border:#fde68a;
+  --s900:#0f172a;
+  --s800:#1e293b;
+  --s700:#334155;
+  --s600:#475569;
+  --s500:#64748b;
+  --s400:#64748b;
+  --s300:#cbd5e1;
+  --s200:#e2e8f0;
+  --s100:#f1f5f9;
+  --s50:#f8fafc;
+  --green:#059669;
+  --wh:#ffffff;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.1);
+}
+
+/* ═══════════ 2. RESET / BASE ═══════════ */
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:16px;line-height:1.6;
+  background:#f1f5f9;
+  color:var(--s800);
+  min-height:100vh;
+}
+
+/* ═══════════ 3. GLOBAL COMPONENTS ═══════════ */
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:200;
+  background:rgba(248,250,252,.96);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:2px solid var(--cream-border);
+  height:56px;display:flex;align-items:center;padding:0 20px;
+}
+.nav-inner{max-width:1200px;width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-b-hex{
+  width:38px;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-wordmark{font-family:'Bebas Neue',serif;font-size:22px;letter-spacing:2.5px;color:var(--s900);line-height:1;}
+.nav-wordmark em{color:var(--amber);font-style:normal;}
+.nav-links{display:flex;align-items:center;gap:2px;}
+.nav-links a{font-size:13px;font-weight:500;color:var(--s600);text-decoration:none;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;}
+.nav-links a:hover{background:var(--cream-dk);color:var(--s900);}
+.nav-links a.active{background:var(--cream-dk);color:var(--amber);font-weight:700;}
+.nav-ham{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--s600);}
+.nav-ham svg{width:22px;height:22px;}
+
+/* FOOTER */
+footer{background:#fff;color:#334155;border-top:2px solid #e2e8f0;padding:48px 20px 28px;margin-top:56px;}
+.foot-inner{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:32px;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}
+.foot-col{display:flex;flex-direction:column;gap:8px;min-width:140px;}
+.foot-col h4{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
+.foot-col a{font-size:14px;color:#475569;text-decoration:none;line-height:1.9;transition:color .15s;}
+.foot-col a:hover{color:#0f172a;}
+.foot-col p{font-size:14px;color:#64748b;line-height:1.6;margin:0;}
+.foot-bottom{max-width:1200px;margin:0 auto;padding:16px 0 0;border-top:1px solid #e2e8f0;font-size:13px;color:#64748b;line-height:1.6;}
+.foot-brand-row{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+.foot-brand-hex{width:24px;height:24px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);background:var(--bee);display:flex;align-items:center;justify-content:center;}
+.foot-brand-hex span{font-family:'Bebas Neue',serif;font-size:13px;color:#fff;font-weight:900;}
+.foot-brand-name{font-family:'Bebas Neue',serif;font-size:19px;letter-spacing:2px;color:#0f172a;}
+.foot-brand-name em{color:var(--amber);font-style:normal;}
+
+/* SHARE STRIP */
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* AD SLOTS */
+.ad-wrap{margin:36px 0;text-align:center;}
+.ad-slot-label{font-family:'DM Mono',monospace;font-size:13px;color:var(--s500);text-align:center;margin-bottom:4px;letter-spacing:.3px;}
+ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
+
+/* ═══════════ 4. PAGE LAYOUT ═══════════ */
+main{max-width:1440px;margin:0 auto;padding:24px 20px 80px;background:#f1f5f9;}
+
+/* HERO BAND */
+.hero-band{
+  background:#ffffff;
+  border:1px solid var(--s200);
+  border-radius:20px;
+  padding:28px 32px 24px;
+  margin-bottom:28px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  position:relative;overflow:hidden;
+}
+.hero-band::before{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,158,11,.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-text{}
+.hero-h1{
+  font-family:'Bebas Neue',serif;
+  font-size:clamp(24px,3.5vw,38px);
+  letter-spacing:2px;color:var(--s900);line-height:1;
+  margin-bottom:8px;
+}
+.hero-sub{font-size:16px;color:var(--s600);line-height:1.5;max-width:520px;}
+.hero-sub strong{color:var(--amber);}
+.hero-bee{flex-shrink:0;opacity:.95;}
+.hero-bee img{width:110px;height:110px;object-fit:contain;display:block;}
+
+/* TOOL CARD */
+.tool{
+  display:grid;grid-template-columns:520px 1fr;
+  background:var(--wh);
+  border:1px solid var(--s200);
+  border-radius:20px;overflow:hidden;
+  min-height:680px;
+  box-shadow:var(--shadow-lg);
+  margin:0;
+}
+
+/* LEFT PANE */
+.pane-left{
+  border-right:1px solid var(--s200);
+  display:flex;flex-direction:column;align-items:center;
+  padding:20px 28px 20px;gap:12px;
+  background:#fff;
+  min-width:420px;
+}
+.tabs{display:flex;width:100%;background:var(--s100);border-radius:11px;padding:3px;gap:3px;}
+.tab-btn{flex:1;padding:10px 4px;border:none;cursor:pointer;background:transparent;border-radius:9px;font-family:'Bebas Neue',serif;font-size:18px;letter-spacing:1px;color:var(--s700);transition:all .15s;}
+.tab-btn.active{background:var(--wh);color:var(--amber);font-size:19px;box-shadow:0 1px 6px rgba(0,0,0,.1);}
+
+.hive-status{font-family:'Bebas Neue',serif;font-size:20px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--amber);text-align:center;min-height:36px;transition:all .3s;background:transparent;border:none;border-top:2px solid var(--cream-border);border-bottom:2px solid var(--cream-border);border-radius:0;padding:8px 0;display:block;width:100%;box-sizing:border-box;line-height:1.2;}
+.hive-status.ready{color:var(--green);border-top-color:#86efac;border-bottom-color:#86efac;}
+.hive-status.picking{color:var(--amber);border-top-color:var(--bee);border-bottom-color:var(--bee);}
+
+/* HONEYCOMB */
+.hive-wrap{position:relative;width:380px;height:366px;margin:0 auto;}
+.hx{
+  position:absolute;width:122px;height:141px;
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .12s,filter .12s;user-select:none;
+}
+/* hex positions — scaled 1.386x, W=122 H=141 step=129 */
+.hx[data-i="0"]{left:64px;top:0;}
+.hx[data-i="1"]{left:193px;top:0;}
+.hx[data-i="5"]{left:0px;top:112px;}
+.hx[data-i="6"]{left:129px;top:112px;}
+.hx[data-i="2"]{left:258px;top:112px;}
+.hx[data-i="3"]{left:64px;top:225px;}
+.hx[data-i="4"]{left:193px;top:225px;}
+
+/* hex positions — 2-3-2 honeycomb layout, W=88 H=102 step=93 */
+
+.hx:hover{transform:scale(1.07);}
+.hx:active{transform:scale(.96);}
+.hx-outer{
+  background:linear-gradient(145deg,#fef9e7,#fef3c7);
+  box-shadow:0 3px 10px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.9);
+  filter:drop-shadow(0 0 1.5px rgba(0,0,0,.22));
+}
+.hx-outer.filled{background:linear-gradient(145deg,#fef3c7,#fde68a);filter:drop-shadow(0 0 1.5px rgba(0,0,0,.25));}
+.hx-outer.active{
+  background:linear-gradient(145deg,#fde68a,#fcd34d);
+  box-shadow:0 0 0 3px var(--bee),0 3px 14px rgba(245,158,11,.35);
+  transform:scale(1.09);
+}
+.hx-center{
+  background:linear-gradient(145deg,#fbbf24,#f59e0b);
+  box-shadow:0 4px 16px rgba(245,158,11,.45),inset 0 1px 0 rgba(255,255,255,.3);
+  z-index:2;
+  filter:drop-shadow(0 0 2px rgba(0,0,0,.28));
+}
+.hx-outer{z-index:1;}
+.hx-center.active{
+  background:linear-gradient(145deg,#fcd34d,#f59e0b);
+  box-shadow:0 0 0 3px var(--s900),0 4px 20px rgba(245,158,11,.5);
+  transform:scale(1.09);
+}
+.hx-ltr{font-family:'Bebas Neue',serif;font-size:36px;font-weight:900;line-height:1;pointer-events:none;}
+.hx-outer .hx-ltr{color:var(--s900);}
+.hx-center .hx-ltr{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.2);}
+.hx-dot{font-size:22px;opacity:.3;pointer-events:none;}
+.hx-outer .hx-dot{color:var(--s600);}
+.hx-center .hx-dot{color:#fff;}
+/* Hex positions */
+
+/* SLOTS */
+.slots{display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;width:100%;margin-top:4px;}
+.slot{flex:1;min-width:0;height:56px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:26px;cursor:pointer;border:none;transition:all .12s;}
+.slot-outer{background:var(--s800);color:#fff;}
+.slot-center{background:var(--bee);color:#fff;}
+.slot-empty{background:var(--s100);color:var(--s300);}
+.slot.sel{box-shadow:0 0 0 2px var(--bee);}
+
+/* BUTTONS */
+.btn-solve{
+  width:100%;padding:14px 0;border:none;border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;
+  background:linear-gradient(135deg,#f59e0b,#e8940f);color:#fff;cursor:pointer;
+  letter-spacing:.3px;transition:all .15s;
+  box-shadow:0 4px 14px rgba(245,158,11,.4);
+}
+.btn-solve:hover:not(:disabled){background:linear-gradient(135deg,#fbbf24,#f59e0b);transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,158,11,.45);}
+.btn-solve:disabled{background:var(--s200);color:var(--s400);box-shadow:none;cursor:not-allowed;transform:none;}
+.btn-clear{width:100%;padding:12px 0;border:1.5px solid var(--s400);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--s700);background:#fff;cursor:pointer;transition:all .15s;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.btn-clear:hover{background:var(--s100);border-color:var(--s500);color:var(--s900);}
+.btn-clear:hover{border-color:var(--s400);color:var(--s900);}
+
+/* HOW-TO BOX */
+.how-box{width:100%;background:#f8fafc;border:1px solid var(--s200);border-radius:12px;padding:14px 15px;}
+.how-head{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--amber);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;}
+.how-item{display:flex;gap:9px;align-items:flex-start;margin-bottom:8px;}
+.how-item:last-child{margin-bottom:0;}
+.how-num{width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-top:2px;background:var(--bee);color:#fff;font-family:'Bebas Neue',serif;font-size:13px;display:flex;align-items:center;justify-content:center;}
+.how-txt{font-size:13px;color:var(--s700);line-height:1.5;}
+
+/* RIGHT PANE */
+.pane-right{display:flex;flex-direction:column;overflow:hidden;background:var(--wh);position:relative;height:100%;}
+
+/* EMPTY STATE */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:48px 40px;text-align:center;}
+.empty-bee-wrap{position:relative;}
+.empty-bee-img{width:100px;height:100px;object-fit:contain;opacity:.7;}
+.empty-title{font-size:28px;font-weight:800;color:var(--s900);letter-spacing:-.3px;line-height:1.2;}
+.empty-body{font-size:17px;color:var(--s600);max-width:320px;line-height:1.7;}
+.empty-demo{background:var(--cream-dk);border-radius:10px;padding:11px 20px;font-size:15px;color:var(--amber);font-weight:700;border:1px solid var(--cream-border);}
+.empty-steps{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;}
+.empty-step{display:flex;align-items:center;gap:12px;font-size:15px;color:var(--s600);text-align:left;}
+.empty-step-num{width:26px;height:26px;border-radius:50%;background:var(--bee);color:#fff;font-family:'Bebas Neue',serif;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* STATS BAR */
+.stats-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--s200);background:var(--s50);}
+.stats-bar-left{display:flex;align-items:center;gap:8px;flex:1;flex-wrap:wrap;}
+.stat-words{font-size:18px;font-weight:800;color:var(--s900);}
+.badge-pangram{background:var(--cream-dk);border:1px solid var(--cream-border);border-radius:7px;padding:5px 13px;font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--amber);}
+.stat-pts{font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:var(--s600);}
+.stats-bee{flex-shrink:0;}
+.stats-bee img{width:44px;height:44px;object-fit:contain;}
+
+/* FILTERS */
+.filters{display:flex;gap:4px;padding:10px 18px;border-bottom:1px solid var(--s100);flex-wrap:wrap;background:var(--wh);}
+.pill{padding:7px 18px;border-radius:999px;border:1.5px solid var(--s200);background:var(--wh);font-size:15px;font-weight:600;color:var(--s600);cursor:pointer;transition:all .12s;}
+.pill.active{background:var(--bee);border-color:var(--bee);color:#fff;}
+.pill:hover:not(.active){background:var(--cream-dk);border-color:var(--cream-border);}
+
+/* WORDS */
+.words-wrap{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;}
+.words-wrap::-webkit-scrollbar{width:4px;}
+.words-wrap::-webkit-scrollbar-track{background:var(--s100);}
+.words-wrap::-webkit-scrollbar-thumb{background:var(--s200);border-radius:2px;}
+.wchip{position:relative;padding:10px 16px;border:1px solid var(--s200);border-radius:10px;background:var(--s50);font-size:16px;font-weight:600;color:var(--s700);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;display:flex;align-items:center;gap:4px;}
+.wchip:hover{background:var(--cream-dk);border-color:var(--cream-border);}
+.wchip.pangram{background:var(--cream-dk);border-color:var(--cream-border);color:var(--amber);font-weight:700;}
+.wchip.selected{background:var(--s900);border-color:var(--s900);color:#fff;}
+.wchip-word{flex:1;}
+.wchip-pts{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--s500);background:var(--s100);border-radius:5px;padding:2px 7px;flex-shrink:0;line-height:1.4;}
+.wchip.pangram .wchip-pts{color:var(--amber);background:rgba(245,158,11,.12);}
+.wchip.selected .wchip-pts{color:rgba(255,255,255,.6);background:rgba(255,255,255,.1);}
+.wchip .center-ltr{color:var(--bee);font-weight:800;}
+.wchip.selected .center-ltr{color:#fbbf24;}
+/* Sort toggle */
+.sort-toggle{display:flex;gap:0;border:1.5px solid var(--s200);border-radius:8px;overflow:hidden;flex-shrink:0;}
+.sort-btn{padding:7px 16px;border:none;background:var(--wh);font-size:15px;font-weight:700;color:var(--s500);cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:.3px;transition:all .12s;}
+.sort-btn.active{background:var(--s900);color:#fff;}
+.sort-btn:first-child{border-right:1px solid var(--s200);}
+
+/* PANGRAM CELEBRATE */
+.pangram-found{
+  display:none;
+  align-items:center;gap:12px;
+  padding:12px 18px;
+  background:linear-gradient(135deg,var(--cream-dk),var(--cream));
+  border-bottom:1px solid var(--cream-border);
+}
+.pangram-found.show{display:flex;}
+.pangram-found img{width:48px;height:48px;object-fit:contain;flex-shrink:0;}
+.pangram-found-text{font-size:17px;font-weight:800;color:var(--amber);letter-spacing:1px;font-family:'DM Mono',monospace;text-transform:uppercase;}
+.pangram-found-word{font-family:'Bebas Neue',serif;font-size:48px;color:var(--s900);letter-spacing:3px;line-height:1.05;}
+
+/* DEF STRIP */
+.def-strip{border-top:1px solid var(--s200);background:#fff;padding:13px 18px;display:flex;gap:12px;align-items:flex-start;}
+.def-body{font-size:15px;color:#334155;line-height:1.65;flex:1;}
+.def-word{font-family:'Bebas Neue',serif;font-size:22px;color:var(--amber);letter-spacing:1px;flex-shrink:0;}
+.def-txt{font-size:13px;color:#94a3b8;line-height:1.5;flex:1;}
+.def-close{background:none;border:none;color:#64748b;cursor:pointer;font-size:22px;line-height:1;flex-shrink:0;}
+
+/* HINTS PANEL */
+.hints-wrap{flex:1;overflow-y:auto;padding:0;}
+.hints-header{display:flex;align-items:center;gap:14px;padding:16px 20px;background:#f8fafc;border-bottom:1px solid var(--s200);}
+.hints-header img{width:52px;height:52px;object-fit:contain;flex-shrink:0;}
+.hints-header-text h3{font-size:15px;font-weight:700;color:var(--s900);margin-bottom:3px;}
+.hints-header-text p{font-size:13px;color:var(--s500);line-height:1.5;}
+.hints-list{padding:8px 20px 20px;}
+.hint-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--s100);}
+.hint-badge{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:20px;color:#fff;flex-shrink:0;}
+.hint-info{flex:1;font-size:13px;color:var(--s600);}
+.hint-revealed{color:var(--amber);font-weight:600;font-size:13px;line-height:1.5;}
+.btn-reveal{padding:5px 13px;background:var(--s100);border:1px solid var(--s200);border-radius:7px;font-size:13px;font-weight:600;color:var(--s700);cursor:pointer;transition:all .15s;}
+.btn-reveal:hover{background:var(--cream-dk);border-color:var(--cream-border);}
+
+/* PRACTICE PANEL */
+.practice-wrap{flex:1;overflow-y:auto;padding:20px;}
+.prac-label{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--s500);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+.prac-center-inp{width:120px;height:80px;text-align:center;border:3px solid var(--bee);border-radius:14px;font-family:'Bebas Neue',serif;font-size:44px;color:var(--s900);background:var(--cream-dk);display:block;margin-bottom:20px;outline:none;box-shadow:0 2px 8px rgba(245,158,11,.2);}
+.prac-outers{display:flex;gap:8px;flex-wrap:nowrap;margin-bottom:24px;width:100%;}
+.prac-outer-inp{flex:1;min-width:0;height:70px;text-align:center;border:2px solid var(--s200);border-radius:12px;font-family:'Bebas Neue',serif;font-size:38px;color:var(--s900);background:var(--wh);outline:none;transition:border-color .15s;}
+.prac-outer-inp:focus{border-color:var(--bee);}
+.btn-practice{padding:12px 28px;background:linear-gradient(135deg,#f59e0b,#e8940f);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 3px 12px rgba(245,158,11,.35);transition:all .15s;}
+.btn-practice:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(245,158,11,.4);}
+
+/* ═══════════ 4. SEO CONTENT ═══════════ */
+.seo{max-width:880px;}
+.seo-section{margin-bottom:44px;}
+.seo-h2{
+  display:flex;align-items:center;gap:12px;
+  font-family:'Bebas Neue',serif;font-size:clamp(24px,3vw,32px);
+  letter-spacing:1.5px;color:var(--s900);
+  margin-bottom:14px;
+}
+.seo-h2 img{width:36px;height:36px;object-fit:contain;flex-shrink:0;}
+.seo p{font-size:16px;color:var(--s700);line-height:1.75;margin-bottom:14px;}
+
+/* TIPS GRID */
+.tips-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:8px;}
+.tip{background:var(--wh);border:1px solid var(--s200);border-left:4px solid var(--bee);border-radius:0 12px 12px 0;padding:14px 16px;box-shadow:var(--shadow-sm);}
+.tip-n{font-family:'DM Mono',monospace;font-size:13px;color:var(--amber);font-weight:700;margin-bottom:5px;letter-spacing:.5px;}
+.tip-t{font-size:14px;color:var(--s700);line-height:1.6;}
+
+/* FAQ */
+.faq-section{margin-bottom:44px;}
+.faq-item{border-bottom:1px solid var(--s200);padding:14px 0;}
+.faq-q{width:100%;text-align:left;background:none;border:none;display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;color:var(--s800);padding:0;}
+.faq-chevron{color:var(--s400);font-size:20px;flex-shrink:0;transition:transform .18s;}
+.faq-chevron.open{transform:rotate(180deg);}
+.faq-a{font-size:15px;color:var(--s600);line-height:1.7;margin-top:10px;padding-right:24px;display:none;}
+.faq-a.open{display:block;}
+
+/* ARCHIVE SECTION */
+.archive-section{margin-bottom:44px;}
+.archive-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+.archive-intro{font-size:16px;color:var(--s600);line-height:1.6;margin-bottom:16px;}
+.archive-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.archive-card{
+  background:var(--wh);border:1px solid var(--s200);border-radius:12px;
+  padding:14px 16px;text-decoration:none;
+  display:flex;align-items:center;gap:12px;
+  transition:all .15s;box-shadow:var(--shadow-sm);
+}
+.archive-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--cream-border);}
+.archive-date-badge{
+  width:48px;height:48px;border-radius:10px;
+  background:var(--cream-dk);border:1px solid var(--cream-border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.archive-month{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;}
+.archive-day{font-family:'Bebas Neue',serif;font-size:22px;color:var(--s900);line-height:1;}
+.archive-info{flex:1;min-width:0;}
+.archive-title{font-size:14px;font-weight:700;color:var(--s900);margin-bottom:2px;}
+.archive-meta{font-size:13px;color:var(--s500);font-family:'DM Mono',monospace;}
+.archive-pangram{color:var(--amber);font-weight:700;}
+.archive-cta{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:16px;padding:10px 20px;
+  background:var(--cream-dk);border:1px solid var(--cream-border);
+  border-radius:9px;font-size:14px;font-weight:600;
+  color:var(--amber);text-decoration:none;transition:all .15s;
+}
+.archive-cta:hover{background:var(--bee);color:#fff;border-color:var(--bee);}
+
+/* PUZZLE RECOMMENDATIONS */
+.puzzles-section{margin-bottom:44px;}
+.puzzles-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.puzzle-card{
+  background:var(--wh);border:1px solid var(--s200);
+  border-radius:14px;padding:18px 20px;text-decoration:none;
+  transition:all .15s;box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;gap:6px;
+}
+.puzzle-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+.puzzle-tag{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--amber);letter-spacing:.5px;text-transform:uppercase;}
+.puzzle-name{font-size:16px;font-weight:700;color:var(--s900);}
+.puzzle-desc{font-size:14px;color:var(--s600);line-height:1.5;}
+.puzzle-cta{
+  margin-top:6px;display:inline-flex;align-items:center;gap:5px;
+  font-size:13px;font-weight:600;color:var(--amber);
+}
+
+/* ARTICLES */
+.articles-section{margin-bottom:44px;}
+.articles-header-row{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
+.articles-header-row img{width:70px;height:70px;object-fit:contain;flex-shrink:0;}
+.articles-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+.art-card{background:var(--wh);border:1px solid var(--s200);border-radius:13px;padding:18px 20px;text-decoration:none;transition:all .15s;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow-sm);}
+.art-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--cream-border);}
+.art-tag{font-family:'DM Mono',monospace;font-size:13px;color:var(--amber);font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.art-title{font-size:15px;font-weight:700;color:var(--s900);line-height:1.3;}
+.art-desc{font-size:13px;color:var(--s600);line-height:1.5;}
+.art-kd{font-size:13px;color:var(--s400);font-family:'DM Mono',monospace;}
+
+/* PLAY MORE SECTION — word.tips style */
+.play-more-section{margin-bottom:44px;}
+.play-more-head{display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+.play-more-head-icon{font-size:28px;flex-shrink:0;}
+.play-more-title{font-family:'Bebas Neue',serif;font-size:clamp(24px,3vw,32px);letter-spacing:1.5px;color:var(--s900);}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.pm-card{background:var(--wh);border:1px solid var(--s200);border-radius:16px;padding:20px 18px;text-decoration:none;transition:all .15s;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow-sm);}
+.pm-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--cream-border);}
+.pm-card-top{display:flex;align-items:center;gap:14px;}
+.pm-logo{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;}
+.pm-logo-archive{background:linear-gradient(135deg,#fbbf24,#f59e0b);}
+.pm-logo-yesterday{background:linear-gradient(135deg,#a78bfa,#7c3aed);}
+.pm-logo-nyt{background:linear-gradient(135deg,#374151,#1f2937);}
+.pm-logo-buddy{background:linear-gradient(135deg,#34d399,#059669);}
+.pm-card-name{font-size:16px;font-weight:700;color:var(--s900);line-height:1.2;}
+.pm-card-tag{font-family:'DM Mono',monospace;font-size:13px;color:var(--amber);font-weight:600;letter-spacing:.3px;}
+.pm-card-desc{font-size:14px;color:var(--s600);line-height:1.55;flex:1;}
+.pm-play-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 0;background:var(--s100);border:1.5px solid var(--s200);border-radius:99px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--s800);transition:all .15s;width:100%;}
+.pm-card:hover .pm-play-btn{background:var(--bee);border-color:var(--bee);color:#fff;}
+.pm-play-btn-amazon{background:linear-gradient(135deg,#f59e0b,#d97706);border-color:transparent;color:#fff;}
+.pm-card:hover .pm-play-btn-amazon{background:linear-gradient(135deg,#fbbf24,#f59e0b);border-color:transparent;}
+
+/* ═══════════ 5. MOBILE ═══════════ */
+
+.share-strip{display:flex;align-items:center;gap:14px;margin:32px auto 48px;padding:14px 20px;background:#fffbeb;border:1px solid #fde68a;border-left:5px solid #f59e0b;border-radius:14px;max-width:700px;flex-wrap:nowrap;}
+.share-strip-lbl{font-family:'DM Mono',monospace;font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#b45309;white-space:nowrap;flex-shrink:0;}
+.share-btns{display:flex;gap:7px;flex:1;flex-wrap:nowrap;align-items:center;}
+
+
+.sbn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:transform .12s;border:none;flex-shrink:0;}
+.sbn:hover{transform:scale(1.12);}
+.sbn-native{background:#f59e0b;color:#fff;}
+.sbn-copy{background:#e2e8f0;color:#334155;}
+.sbn-copy.copied{background:#059669;color:#fff;}
+.sbn-fb{background:#1877f2;color:#fff;}
+.sbn-tw{background:#000;color:#fff;}
+.sbn-li{background:#0a66c2;color:#fff;}
+.sbn-wa{background:#25d366;color:#fff;}
+.sbn-em{background:#e2e8f0;color:#334155;}
+
+/* ── HINTS GRID ─────────────────────────────────────────────────── */
+.hints-grid-wrap{padding:20px 24px 24px;border-bottom:2px solid var(--cream-border);background:var(--s50);}
+.hints-grid-header{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.hints-grid-icon{width:44px;height:44px;flex-shrink:0;}
+.hints-grid-heading{font-size:17px;font-weight:800;color:var(--s900);margin-bottom:2px;}
+.hints-grid-sub{font-size:14px;color:var(--s600);line-height:1.5;}
+.hints-grid-stats{font-size:15px;font-weight:600;color:var(--s700);margin:10px 0 14px;padding:8px 14px;background:#fff;border-radius:8px;border:1px solid var(--cream-border);}
+.hints-grid-axis{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.hints-grid-axis-lbl{font-family:'DM Mono',monospace;font-size:13px;color:var(--s500);font-weight:600;letter-spacing:.3px;}
+.hg-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--s200);background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.hints-grid{border-collapse:collapse;width:100%;font-family:'DM Mono',monospace;font-size:15px;}
+.hints-grid thead th{background:var(--s900);color:#fff;padding:10px 12px;text-align:center;font-size:13px;font-weight:700;border:none;letter-spacing:.5px;}
+.hints-grid thead th:first-child{text-align:left;padding-left:16px;min-width:52px;border-radius:10px 0 0 0;}
+.hints-grid thead th:last-child{border-radius:0 10px 0 0;}
+.hints-grid tbody td{padding:10px 12px;text-align:center;border:1px solid var(--s200);background:#fff;color:var(--s700);transition:background .1s;}
+.hints-grid tbody td:first-child{font-weight:800;font-size:16px;color:var(--s900);background:var(--s50);text-align:left;padding-left:16px;border-left:none;}
+.hints-grid tbody td.hg-has-val{background:#fffbeb;color:var(--s900);font-weight:800;font-size:16px;cursor:pointer;border-color:var(--cream-border);}
+.hints-grid tbody td.hg-has-val:hover{background:var(--cream-dk);border-color:var(--bee);}
+.hints-grid tbody td.hg-has-val:active{background:#fde68a;}
+.hints-grid tbody td.hg-center-row{background:#fef3c7 !important;color:var(--amber) !important;font-weight:800 !important;border-color:var(--cream-border) !important;}
+.hints-grid tbody td.hg-center-row.hg-has-val{cursor:pointer;}
+.hints-grid tbody td.hg-first-col.hg-center-row{background:#fef3c7;color:var(--amber);}
+.hints-grid tbody td.hg-empty{color:transparent;cursor:default;background:#fff;}
+.hints-grid tfoot td{padding:10px 12px;text-align:center;background:var(--s100);font-weight:700;font-size:15px;color:var(--s900);border:1px solid var(--s200);border-top:2px solid var(--s400);}
+.hints-grid tfoot td:first-child{text-align:left;padding-left:16px;font-size:14px;color:var(--s600);font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.hints-grid tfoot td:last-child{color:var(--amber);font-size:16px;}
+/* Tooltip */
+.hg-tooltip{position:fixed;background:var(--s900);color:#fff;font-size:14px;line-height:1.5;padding:10px 16px;border-radius:10px;pointer-events:none;z-index:999;max-width:240px;box-shadow:0 4px 20px rgba(0,0,0,.3);display:none;font-family:'DM Sans',sans-serif;}
+.hg-tooltip strong{color:var(--bee);}
+/* ------------------------------------------------------------------- */
+
+
+.hints-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 40px;gap:18px;flex:1;}
+.hints-empty-icon{font-size:64px;line-height:1;}
+.hints-empty-title{font-family:'Bebas Neue',serif;font-size:28px;letter-spacing:1px;color:var(--s900);}
+.hints-empty-body{font-size:16px;color:var(--s600);max-width:320px;line-height:1.75;}
+.hints-empty-cta{background:linear-gradient(135deg,var(--bee),#d97706);color:#fff;border:none;padding:14px 28px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;}
+.hints-empty-cta:hover{opacity:.9;}
+
+/* ── ACCESSIBILITY ───────────────────────────────────────────────── */
+/* High contrast mode */
+body.hc-mode{background:#fff!important;color:#000!important;}
+body.hc-mode .hx-outer{background:#fff!important;border:3px solid #000!important;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);}
+body.hc-mode .hx-center{background:#000!important;border:3px solid #000!important;}
+body.hc-mode .hx-center .hx-ltr{color:#fff!important;}
+body.hc-mode .hx-outer .hx-ltr{color:#000!important;font-size:46px!important;}
+body.hc-mode .btn-solve{background:#000!important;color:#fff!important;border:3px solid #000!important;}
+body.hc-mode .btn-clear{background:#fff!important;color:#000!important;border:3px solid #000!important;}
+body.hc-mode .wchip{background:#fff!important;border:2px solid #000!important;color:#000!important;}
+body.hc-mode .wchip.pangram{background:#000!important;color:#fff!important;}
+body.hc-mode .wchip-pts{background:#000!important;color:#fff!important;}
+body.hc-mode .hive-status{color:#000!important;border-color:#000!important;}
+body.hc-mode .pane-left,body.hc-mode .pane-right,body.hc-mode .tool{background:#fff!important;border-color:#000!important;}
+body.hc-mode .slot-outer{background:#000!important;color:#fff!important;}
+body.hc-mode .slot-center{background:#ff6600!important;color:#fff!important;}
+body.hc-mode nav{background:#fff!important;border-bottom:3px solid #000!important;}
+/* Large text mode */
+body.lg-text{font-size:20px!important;}
+body.lg-text .wchip{font-size:20px!important;padding:12px 18px!important;}
+body.lg-text .hx-ltr{font-size:52px!important;}
+body.lg-text .hive-status{font-size:24px!important;}
+body.lg-text .stat-words{font-size:24px!important;}
+body.lg-text .stat-pts{font-size:19px!important;}
+/* Reduced motion */
+
+/* PRACTICE MODE — one clean block */
+.tool.practice-mode{grid-template-columns:1fr;}
+.tool.practice-mode .pane-left{display:none!important;width:0!important;min-width:0!important;overflow:hidden!important;padding:0!important;border:none!important;}
+.tool.practice-mode .pane-right{grid-column:1 / -1;overflow:visible;width:100%;height:100%;}
+.tool.practice-mode #panelPractice{width:100%;min-height:500px;flex:1;}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
+}
+/* Accessibility toggle button */
+.a11y-btn{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:var(--s100);border:1.5px solid var(--s200);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:all .15s;font-size:15px;}
+.a11y-btn:hover{background:var(--cream-dk);border-color:var(--bee);}
+.a11y-panel{position:absolute;top:48px;right:12px;background:#fff;border:1.5px solid var(--s200);border-radius:12px;padding:14px 16px;z-index:20;box-shadow:0 4px 20px rgba(0,0,0,.12);min-width:200px;display:none;}
+.a11y-panel.open{display:block;}
+.a11y-panel-title{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--s500);margin-bottom:10px;}
+.a11y-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--s100);}
+.a11y-row:last-child{border-bottom:none;}
+.a11y-row-lbl{font-size:14px;color:var(--s700);font-weight:600;}
+.a11y-toggle{width:40px;height:22px;border-radius:999px;background:var(--s200);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.a11y-toggle.on{background:var(--bee);}
+.a11y-toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.a11y-toggle.on::after{left:21px;}
+body.hc-mode .a11y-btn{background:#000;color:#fff;border-color:#fff;}
+body.hc-mode .a11y-panel{background:#fff;border:3px solid #000;}
+/* ─────────────────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  .hive-status{font-size:14px!important;letter-spacing:.5px!important;padding:6px 0!important;}
+  .share-strip{flex-wrap:wrap;max-width:100%;border-left:4px solid #f59e0b;}
+    .share-btns{flex-wrap:wrap;}
+  
+  body{background:#f1f5f9;color:var(--s800);}
+  main{background:#f1f5f9;padding:14px 14px 60px;}
+  .hero-band{padding:20px 18px;border-radius:14px;}
+  .hero-bee img{width:72px;height:72px;}
+  footer{background:#fff;color:var(--s700);border-top:2px solid #e2e8f0;padding:28px 20px 20px;margin-top:32px;}
+  .foot-inner{flex-direction:column;gap:16px;}
+  .foot-col{min-width:unset;width:100%;}
+  .foot-col h4{color:#475569;}
+  .foot-col a{color:#475569;}
+  .foot-col a:hover{color:var(--s900);}
+  .foot-col p{color:#475569;}
+  .foot-bottom{border-top:1px solid #e2e8f0;color:#64748b;padding:12px 0 0;}
+  .foot-brand-name{color:var(--s900);}
+  nav{background:rgba(248,250,252,.98);}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:#fff;flex-direction:column;padding:8px 12px 12px;gap:2px;border-bottom:1px solid var(--s200);box-shadow:0 4px 16px rgba(0,0,0,.08);z-index:199;}
+  .nav-links.open{display:flex;}
+  .nav-ham{display:flex;}
+  .nav-links a{font-size:14px;padding:11px 14px;border-radius:9px;color:var(--s800);}
+  .tool{grid-template-columns:1fr;min-height:auto;border-radius:14px;}
+  .pane-left{border-right:none;border-bottom:1px solid var(--s200);padding:18px 14px 16px;gap:11px;}
+  .how-box{display:none;}
+  .pane-right{min-height:320px;}
+  .tips-grid{grid-template-columns:1fr;}
+  .puzzles-grid{grid-template-columns:1fr;}
+  .pm-grid{grid-template-columns:1fr;}
+  .pm-card{padding:16px 14px;}
+  .pm-logo{width:48px;height:48px;font-size:22px;}
+  .articles-grid{grid-template-columns:1fr;}
+  .archive-grid{grid-template-columns:1fr;}
+  
+  .stats-bee{display:none;}
+
+
+  /* Nav is minimal — just branding + hamburger */
+  nav{height:48px;padding:0 16px;}
+  .nav-wordmark{display:none;}  /* wordmark repeats inside tool card */
+
+  main{padding:0 0 60px;}       /* no padding — tool card bleeds to edges */
+
+  /* Tool card: no border-radius at top on mobile — feels native */
+  .tool{
+    border-radius:0 0 20px 20px;
+    border-top:none;
+    box-shadow:0 4px 20px rgba(0,0,0,.08);
+    margin:0;
+  }
+
+  /* Left pane = the entire above-fold screen */
+  .pane-left{
+    padding:10px 14px 12px;
+    gap:8px;
+    background:#f1f5f9;
+  }
+
+  /* Honeycomb gets MORE vertical breathing room */
+    .hive-wrap{width:274px;height:264px;margin:4px auto 2px;}
+  .hx{width:88px;height:102px;}
+                .hx-ltr{font-size:25px;}
+
+  /* Letter slots row — bigger tap targets */
+  .slots{gap:6px;}
+  .slot{width:38px;height:38px;font-size:18px;}
+
+  /* Solve button — prominent, full width */
+  .btn-solve{padding:16px 0;font-size:16px;border-radius:14px;}
+
+  /* Hide the "how to use" box on mobile — it takes space */
+  .how-box{display:none;}
+  .hive-status{font-size:13px;}
+  .tabs{margin-bottom:0;}
+
+  /* Right pane (results) sits below, natural scroll */
+  .pane-right{
+    border-top:1px solid var(--s200);
+    min-height:280px;
+    border-radius:0 0 20px 20px;
+  }
+
+  /* SEO content gets normal padding back */
+  .seo, .archive-section, .puzzles-section,
+  .articles-section, .faq-section{
+    padding:0 16px;
+  }
+  
+
+}
+@media(max-width:640px){
+      .hive-wrap{width:274px;height:264px;}
+  .hx{width:88px;height:102px;}
+                .hx-ltr{font-size:29px;}
+  main{padding:12px 12px 60px;}
+}
+
+/* ═══ TOOL-FIRST LAYOUT ═══ */
+
+/* Compact header row inside the tool card left pane */
+.tool-header{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;padding-bottom:6px;
+}
+.tool-wordmark{
+  font-family:'Bebas Neue',serif;font-size:26px;
+  letter-spacing:2.5px;color:var(--s900);line-height:1;
+}
+.tool-wordmark em{color:var(--amber);font-style:normal;}
+
+/* Desktop: hide the compact header — nav already identifies the site */
+@media(min-width:769px){
+  .tool-header{display:none;}
+}
+
+/* Mobile-first: tool card IS the above-fold experience */
+
+
+/* Very small phones */
+@media(max-width:380px){
+  .hive-wrap{width:238px;height:228px;}
+  .hx{width:88px;height:102px;}
+                .hx-ltr{font-size:27px;}
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="bee-icon-nav.webp" alt="SpellingBeeFinder" width="36" height="36" style="object-fit:contain;display:block;flex-shrink:0;" loading="eager">
+      <span class="nav-wordmark">Spelling<em>Bee</em>Finder</span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="active">Solver</a>
+      <a href="answers.html">Daily Answers</a>
+      <a href="gear.html">Books &amp; Gear</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="disclaimer.html">Disclaimer</a>
+      <a href="privacy.html">Privacy</a>
+    </div>
+    <button class="nav-ham" id="navHam" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+</nav>
+
+<main>
+  <!-- TOOL CARD -->
+  <div class="tool" id="toolCard" style="position:relative;">
+      <button class="a11y-btn" id="a11yBtn" onclick="toggleA11yPanel()" aria-label="Accessibility options" title="Accessibility options">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="M12 10c-4 0-6 2-6 2l1.5 8h3L12 14l1.5 6h3L18 12s-2-2-6-2z"/></svg>
+      </button>
+      <div class="a11y-panel" id="a11yPanel" role="dialog" aria-label="Accessibility options">
+        <div class="a11y-panel-title">Accessibility</div>
+        <div class="a11y-row">
+          <span class="a11y-row-lbl">High contrast</span>
+          <button class="a11y-toggle" id="hcToggle" onclick="toggleHC()" aria-label="Toggle high contrast mode" aria-pressed="false"></button>
+        </div>
+        <div class="a11y-row">
+          <span class="a11y-row-lbl">Large text</span>
+          <button class="a11y-toggle" id="lgToggle" onclick="toggleLG()" aria-label="Toggle large text mode" aria-pressed="false"></button>
+        </div>
+      </div>
+    <!-- LEFT PANE -->
+    <div class="pane-left">
+      <!-- COMPACT HEADER — visible on mobile above the honeycomb -->
+      <div class="tool-header">
+        <h1 class="tool-wordmark">Spelling<em>Bee</em>Finder</h1>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" id="tabSolve" onclick="switchTab('solve')" role="tab" aria-selected="true">SOLVE</button>
+        <button class="tab-btn" id="tabHints" onclick="switchTab('hints')" role="tab" aria-selected="false">HINTS</button>
+        <button class="tab-btn" id="tabPractice" onclick="switchTab('practice')" role="tab" aria-selected="false">PRACTICE</button>
+      </div>
+      <div class="hive-status" id="hiveStatus">TAP A CELL &mdash; TYPE ITS LETTER</div>
+      <div class="hive-wrap" id="hive" aria-label="Honeycomb letter input"></div>
+      <div class="slots" id="slots" aria-label="Letters entered"></div>
+      <button class="btn-solve" id="btnSolve" onclick="solveNow()" disabled>Find All Words</button>
+      <button class="btn-clear" onclick="clearAll()">Clear All Letters</button>
+      <div class="how-box">
+        <div class="how-head">How to use</div>
+        <div class="how-item"><div class="how-num">1</div><div class="how-txt">Tap any hexagon, then type its letter</div></div>
+        <div class="how-item"><div class="how-num">2</div><div class="how-txt">Amber center = required in every word</div></div>
+        <div class="how-item"><div class="how-num">3</div><div class="how-txt">Click <strong>Find All Words</strong> for full results</div></div>
+        <div class="how-item"><div class="how-num">4</div><div class="how-txt">Tap any word to see its definition</div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANE -->
+    <div class="pane-right" id="paneRight">
+
+      <!-- SOLVE PANEL -->
+      <div id="panelSolve">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-bee-wrap">
+            <img src="bee-icon-lg.webp" alt="SpellingBeeFinder beehive" width="120" height="120" class="empty-bee-img" loading="lazy">
+          </div>
+          <div class="empty-title">Your words appear here</div>
+          <div class="empty-body">Enter all 7 letters into the honeycomb — then click <strong>Find All Words</strong> to see every valid word instantly.</div>
+          <div class="empty-steps">
+            <div class="empty-step"><span class="empty-step-num">1</span>Tap a hexagon, type its letter</div>
+            <div class="empty-step"><span class="empty-step-num">2</span>Amber center = required in every word</div>
+            <div class="empty-step"><span class="empty-step-num">3</span>Click <strong>Find All Words</strong> for full results</div>
+          </div>
+          <div class="empty-demo">Demo loaded: C A L E I H + M center</div>
+        </div>
+        <div id="resultsArea" aria-live="polite" aria-label="Word results" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+          <!-- Pangram celebrate bar -->
+          <div class="pangram-found" id="pangramBar" style="text-align:center;">
+            <img src="bee-icon-lg.webp" alt="Beehive pangram" width="56" height="56" loading="lazy">
+            <div>
+              <div class="pangram-found-text">&#11088; Pangram found!</div>
+              <div class="pangram-found-word" id="pangramWord"></div>
+            </div>
+          </div>
+          <div class="stats-bar" id="statsBar">
+            <div class="stats-bar-left"></div>
+            <div class="sort-toggle">
+              <button class="sort-btn active" onclick="setSortMode('length',this)">Length</button>
+              <button class="sort-btn" onclick="setSortMode('points',this)">Points</button>
+            </div>
+          </div>
+          <div class="filters" id="filterBar"></div>
+          <div class="words-wrap" id="wordsWrap"></div>
+          <div class="def-strip" id="defStrip" style="display:none;"></div>
+        </div>
+      </div> <!-- /panelSolve -->
+      
+
+<!-- HINTS PANEL -->
+      <div id="panelHints" style="display:none;flex-direction:column;height:100%;overflow-y:auto;">
+        <!-- Hints empty state — shown before solve -->
+        <div id="hintsEmptyState" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 32px;text-align:center;">
+          <img src="beehive-hints.webp" alt="Beehive — solve first to see hints" width="120" height="120" loading="lazy" style="object-fit:contain;">
+          <div style="font-family:'Bebas Neue',serif;font-size:26px;letter-spacing:2px;color:#0f172a;line-height:1.1;">SOLVE FIRST TO SEE HINTS</div>
+          <div style="font-size:16px;color:#475569;max-width:300px;line-height:1.7;">Enter your 7 letters, click <strong>Find All Words</strong>, then come back to Hints for word counts by letter and length &mdash; no answers revealed.</div>
+          <button onclick="switchTab('solve')" style="padding:12px 28px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">Go to Solver &rarr;</button>
+        </div>
+        <!-- Hints content — shown after solve -->
+        <div id="hintsContent" style="display:none;flex-direction:column;height:100%;overflow-y:auto;">
+        <div class="hints-header" style="display:none;">
+          <img src="bee-icon-lg.webp" alt="Beehive hints icon" width="52" height="52" loading="lazy">
+          <div class="hints-header-text">
+            <h3>Hints Mode</h3>
+            <p>See word counts by starting letter and length &mdash; no answers revealed. Click any cell for a clue.</p>
+          </div>
+        </div>
+        <div class="hints-grid-wrap" id="hintsGridWrap" style="display:none;">
+          <div class="hints-grid-header">
+            <svg class="hints-grid-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <polygon points="22,4 38,13 38,31 22,40 6,31 6,13" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <polygon points="22,12 30,17 30,27 22,32 14,27 14,17" fill="#f59e0b"/>
+              <text x="22" y="26" text-anchor="middle" font-size="12" font-weight="900" fill="white" font-family="serif">?</text>
+            </svg>
+            <div>
+              <div class="hints-grid-heading">Grid of Remaining Words</div>
+              <div class="hints-grid-sub">Word counts by first letter and length &mdash; no answers revealed.</div>
+            </div>
+          </div>
+          <div class="hints-grid-stats" id="hintsGridStats"></div>
+          <div class="hints-grid-axis">
+            <span class="hints-grid-axis-lbl">First letter &darr;</span>
+            <span class="hints-grid-axis-lbl">Letters in word &rarr;</span>
+          </div>
+          <div class="hg-table-wrap">
+            <table class="hints-grid" id="hintsGridTable" aria-label="Word count grid by first letter and length"></table>
+          </div>
+        </div>
+          </div>
+        </div>
+
+      <!-- PRACTICE PANEL -->
+      <div id="panelPractice" style="display:none;flex-direction:column;height:100%;overflow:auto;" tabindex="0">
+        <!-- Practice mode header -->
+        <div style="padding:14px 20px 10px;border-bottom:1px solid var(--cream-border);background:var(--s50);display:flex;align-items:center;gap:10px;">
+          <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--amber);background:var(--cream-dk);border:1px solid var(--cream-border);padding:3px 10px;border-radius:6px;">Practice Mode</span>
+          <span style="font-size:14px;color:var(--s500);line-height:1.4;">Enter any 7 letters into the honeycomb &mdash; then click <strong>Find All Words</strong> to see every valid word for that combination.</span>
+        </div>
+        <!-- Reuse the solve panel content for practice — JS handles the logic -->
+        <div style="padding:14px 20px 0;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--amber);text-align:center;min-height:18px;" id="practiceStatus">TAP A CELL &mdash; TYPE ITS LETTER</div>
+        <!-- Practice hive -->
+        <div class="hive-wrap" id="practiceHive" style="margin:12px auto 0;flex-shrink:0;" aria-label="Practice honeycomb letter input"></div>
+        <!-- Practice slots -->
+        <div class="slots" id="practiceSlots" style="width:100%;padding:0 20px;box-sizing:border-box;" aria-label="Practice letters entered"></div>
+        <!-- Practice buttons -->
+        <div style="padding:10px 20px 16px;display:flex;flex-direction:column;gap:8px;">
+          <button class="btn-solve" id="practiceSolveBtn" onclick="solvePractice()" disabled style="width:100%;">Find All Words</button>
+          <button class="btn-clear" onclick="clearPractice()" style="width:100%;">Clear All Letters</button>
+        </div>
+        <!-- Practice results -->
+        <div id="practiceResultsArea" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="stats-bar" id="practiceStatsBar"></div>
+          <div class="filters" id="practiceFilterBar"></div>
+          <div class="words-wrap" id="practiceWordsWrap"></div>
+        </div>
+        <!-- Practice empty state -->
+        <div id="practiceEmpty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;text-align:center;">
+          <img src="bee-icon-lg.webp" alt="Practice mode" width="80" height="80" loading="lazy" style="object-fit:contain;">
+          <div style="font-family:'Bebas Neue',serif;font-size:26px;letter-spacing:2px;color:var(--s900);">EXPLORE ANY LETTER COMBINATION</div>
+          <div style="font-size:16px;color:var(--s600);max-width:300px;line-height:1.7;">Enter any 7 letters, click <strong>Find All Words</strong> to see every valid word for that combination. Great for vocabulary building.</div>
+        </div>
+      </div>
+
+      
+
+    
+      <!-- PRACTICE PANEL -->
+      
+    </div>
+
+      <!-- PRACTICE PANEL -->
+      
+    </div>
+  </div>
+
+  <!-- AD SLOT 1 — below tool, above SEO -->
+  <div class="ad-wrap">
+    <div class="ad-slot-label">Advertisement</div>
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4943534579898039" data-ad-slot="9513724631" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>
+
+  <!-- SEO: SCORING -->
+  <div class="seo">
+    <div class="seo-section">
+      <h2 class="seo-h2">
+        <img src="bee-icon-nav.webp" alt="" width="28" height="28" loading="lazy" aria-hidden="true">
+        How Spelling Bee Scoring Works
+      </h2>
+      <p>The NYT Spelling Bee challenges you to build words from 7 letters, always including the center letter. Four-letter words score 1 point. Five-letter and longer words score 1 point per letter. Pangrams &mdash; words using all 7 letters at least once &mdash; earn a 7-point bonus on top. Genius requires 70% of the day's total possible points. Queen Bee means you found every valid word.</p>
+      <p>SpellingBeeFinder finds every valid word in under a second, shows your maximum possible score, calculates the exact Genius threshold, and labels every pangram so you spot it immediately.</p>
+    </div>
+
+    <div class="seo-section">
+      <h2 class="seo-h2">
+        <img src="bee-icon-nav.webp" alt="" width="28" height="28" loading="lazy" aria-hidden="true">
+        Tips to Reach Genius Every Day
+      </h2>
+      <div class="tips-grid">
+        <div class="tip"><div class="tip-n">TIP 01</div><div class="tip-t">Start with the center letter as your anchor. Every valid word must contain it &mdash; build outward from there.</div></div>
+        <div class="tip"><div class="tip-n">TIP 02</div><div class="tip-t">Sweep suffixes: -ING, -ED, -ER, -NESS, -TION turn one base word into three or four valid entries.</div></div>
+        <div class="tip"><div class="tip-n">TIP 03</div><div class="tip-t">Hunt the pangram early. Look for 7+ letter words ending in -TION, -MENT, -LING, or -NESS with the center letter inside.</div></div>
+        <div class="tip"><div class="tip-n">TIP 04</div><div class="tip-t">Repeated vowels signal rare words. Three of the same vowel in the hive almost always means unusual entries worth finding.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AD SLOT 2 — between tips and FAQ -->
+  <div class="ad-wrap">
+    <div class="ad-slot-label">Advertisement</div>
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4943534579898039" data-ad-slot="3907164419" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>
+
+  <!-- FAQ -->
+  <div class="seo faq-section">
+    <h2 class="seo-h2">
+      <img src="bee-icon-nav.webp" alt="" width="28" height="28" loading="lazy" aria-hidden="true">
+      Spelling Bee Questions, Answered
+    </h2>
+    <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">How does the Spelling Bee Finder work?<span class="faq-chevron">&#8964;</span></button><div class="faq-a">Tap each hexagon in the honeycomb and type its letter. The amber center cell is required in every valid word. Click Find All Words to get every valid word sorted by length, with pangrams labeled with a star and definitions available on tap.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">What is a pangram in the NYT Spelling Bee?<span class="faq-chevron">&#8964;</span></button><div class="faq-a">A pangram uses all 7 letters at least once and earns a 7-point bonus on top of its letter count. Finding the pangram is usually the key to reaching Genius rank. Most daily puzzles contain exactly one pangram. Our solver labels all pangrams with a star so they stand out immediately in results.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">How many points do I need to reach Genius?<span class="faq-chevron">&#8964;</span></button><div class="faq-a">Genius requires 70% of the total possible points for that day's puzzle. The exact threshold changes daily. Our solver shows the maximum score and exact Genius cutoff at the top of every result set so you know precisely how many more words you need to find.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">What words count in the NYT Spelling Bee?<span class="faq-chevron">&#8964;</span></button><div class="faq-a">Valid words must be at least 4 letters, include the center letter, and use only the 7 given letters which can repeat. Proper nouns and hyphenated words are excluded. Four-letter words score 1 point, longer words score 1 per letter, and pangrams earn a 7-point bonus on top.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">Can I practice with any 7 letters?<span class="faq-chevron">&#8964;</span></button><div class="faq-a">Yes. Switch to Practice Mode and enter any custom 7-letter set to find all possible words. This helps you build vocabulary patterns and recognize high-value letter combinations before playing today's puzzle.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">How do I find the pangram?<span class="faq-chevron">&#8964;</span></button><div class="faq-a">Look for words using all 7 letters at least once. Start with suffixes like -TION, -MENT, -NESS, or -LING anchored to the required center letter. Our solver labels every pangram with a star the moment results appear so you see them instantly.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">What is Queen Bee rank?<span class="faq-chevron">&#8964;</span></button><div class="faq-a">Queen Bee means you found every single valid word in the puzzle for 100% of possible points. Most daily puzzles have 30 to 60 valid words. Genius at 70% is the primary goal for most regular players, and Queen Bee is reserved for the most dedicated solvers.</div></div>
+  </div>
+
+  <!-- AD SLOT 3 — between FAQ and archive -->
+  <div class="ad-wrap">
+    <div class="ad-slot-label">Advertisement</div>
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4943534579898039" data-ad-slot="9513724631" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>
+
+  <!-- ARCHIVE SECTION -->
+  <div class="archive-section">
+    <h2 class="seo-h2">
+      <img src="bee-icon-nav.webp" alt="" width="28" height="28" loading="lazy" aria-hidden="true">
+      Recent Spelling Bee Answers
+    </h2>
+    <p class="archive-intro">Missed a puzzle? Browse the last 10 days of complete answer lists, pangrams, and word counts. Each date page includes every valid word, the full word list, and the Genius threshold &mdash; free, no login.</p>
+    <div class="archive-grid" id="archiveGrid">
+      <!-- populated by JS -->
+    </div>
+    <a href="answers.html" class="archive-cta">
+      View Full Archive &rarr;
+    </a>
+  </div>
+
+  <!-- PLAY MORE NYT SPELLING BEE GAMES — word.tips style -->
+  <div class="play-more-section seo">
+    <div class="play-more-head">
+      <span class="play-more-head-icon">&#129440;</span>
+      <h2 class="play-more-title">Want to Play More NYT Spelling Bee Games?</h2>
+    </div>
+    <div class="pm-grid">
+
+      <!-- Daily Answers Archive -->
+      <a href="answers.html" class="pm-card">
+        <div class="pm-card-top">
+          <div class="pm-logo pm-logo-archive">&#128197;</div>
+          <div>
+            <div class="pm-card-tag">Free &bull; Daily</div>
+            <div class="pm-card-name">Daily Answers Archive</div>
+          </div>
+        </div>
+        <div class="pm-card-desc">Full word list, pangrams, and Genius threshold for every puzzle. Last 10 days, free, no login.</div>
+        <div class="pm-play-btn">Browse Archive &rarr;</div>
+      </a>
+
+      <!-- Yesterday's Answers -->
+      <a href="answers/spelling-bee-june-21-2026.html" class="pm-card">
+        <div class="pm-card-top">
+          <div class="pm-logo pm-logo-yesterday">&#9719;</div>
+          <div>
+            <div class="pm-card-tag">Free &bull; June 21</div>
+            <div class="pm-card-name">Yesterday&rsquo;s Answers</div>
+          </div>
+        </div>
+        <div class="pm-card-desc">Missed June 21? All valid words sorted by length. Pangram: NONCHALANCE &starf;. 18 words, 62 max pts.</div>
+        <div class="pm-play-btn">See Answers &rarr;</div>
+      </a>
+
+      <!-- NYT Games Subscription -->
+      <a href="https://www.amazon.com/s?k=NYT+Games+subscription&tag=williamdunb0d-20" target="_blank" rel="noopener sponsored" class="pm-card">
+        <div class="pm-card-top">
+          <div class="pm-logo pm-logo-nyt">&#9733;</div>
+          <div>
+            <div class="pm-card-tag">$39.99/yr &bull; Amazon</div>
+            <div class="pm-card-name">NYT Games Full Access</div>
+          </div>
+        </div>
+        <div class="pm-card-desc">Unlock Spelling Bee stats, Queen Bee tracking, the full crossword archive, Wordle, Strands, and more.</div>
+        <div class="pm-play-btn pm-play-btn-amazon">See on Amazon &rarr;</div>
+      </a>
+
+      <!-- Spelling Bee Buddy Guide -->
+      <a href="spelling-bee-buddy.html" class="pm-card">
+        <div class="pm-card-top">
+          <div class="pm-logo pm-logo-buddy">&#128218;</div>
+          <div>
+            <div class="pm-card-tag">Free Guide</div>
+            <div class="pm-card-name">Spelling Bee Buddy</div>
+          </div>
+        </div>
+        <div class="pm-card-desc">How to use a free word helper to reach Genius rank without a paid subscription. No account needed.</div>
+        <div class="pm-play-btn">Read Guide &rarr;</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- MORE PUZZLES -->
+    <!-- MORE PUZZLES -->
+  <div class="puzzles-section seo">
+    <h2 class="seo-h2">
+      <img src="bee-icon-nav.webp" alt="" width="28" height="28" loading="lazy" aria-hidden="true">
+      More Puzzles You'll Love
+    </h2>
+    <p style="font-size:16px;color:var(--s600);margin-bottom:20px;line-height:1.6;">If you play Spelling Bee every day, these are worth your time. All tested, all free to start.</p>
+    <div class="puzzles-grid">
+      <a href="https://www.chess.com/" target="_blank" rel="noopener sponsored" class="puzzle-card">
+        <div class="puzzle-tag">Daily Puzzles &bull; Free</div>
+        <div class="puzzle-name">Chess.com Puzzles</div>
+        <div class="puzzle-desc">Tactical chess puzzles updated daily. Same daily-habit format as Spelling Bee &mdash; 100M+ players. Free to start, optional premium upgrade.</div>
+        <div class="puzzle-cta">Try Free &rarr;</div>
+      </a>
+      <a href="https://www.amazon.com/s?k=NYT+Games+subscription&tag=williamdunb0d-20" target="_blank" rel="noopener sponsored" class="puzzle-card">
+        <div class="puzzle-tag">Full Archive &bull; $39.99/yr</div>
+        <div class="puzzle-name">NYT Games Subscription</div>
+        <div class="puzzle-desc">Unlock full Spelling Bee stats, Queen Bee tracking, the complete 10,000+ crossword archive, Strands, and Letter Boxed. $39.99/year.</div>
+        <div class="puzzle-cta">See on Amazon &rarr;</div>
+      </a>
+      <a href="https://brilliant.org/" target="_blank" rel="noopener" class="puzzle-card">
+        <div class="puzzle-tag">Logic &amp; Math &bull; Free Trial</div>
+        <div class="puzzle-name">Brilliant.org</div>
+        <div class="puzzle-desc">Logic puzzles, math challenges, and science games for curious minds. Built by educators, loved by word puzzle players who enjoy brain challenges.</div>
+        <div class="puzzle-cta">Start Free &rarr;</div>
+      </a>
+      <a href="gear.html" class="puzzle-card">
+        <div class="puzzle-tag">Books &amp; Games &bull; Amazon</div>
+        <div class="puzzle-name">Word Game Books &amp; Gear</div>
+        <div class="puzzle-desc">Curated word game books, puzzle collections, and vocabulary builders selected for Spelling Bee players. All highly rated on Amazon.</div>
+        <div class="puzzle-cta">Browse Picks &rarr;</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ARTICLES -->
+  <div class="articles-section seo">
+    <div class="articles-header-row">
+      <div>
+        <h2 class="seo-h2" style="margin-bottom:6px;">
+          <img src="bee-icon-lg.webp" alt="SpellingBeeFinder" width="44" height="44" loading="lazy">
+          Spelling Bee Guides &amp; Strategy
+        </h2>
+        <p style="font-size:16px;color:var(--s600);line-height:1.6;">Master the NYT Spelling Bee with in-depth guides. Each targets one keyword cluster and bridges back to the solver.</p>
+      </div>
+    </div>
+    <div class="articles-grid">
+      <a href="spelling-bee-buddy.html" class="art-card">
+        <div class="art-tag">Guide &bull; Free</div>
+        <div class="art-title">Spelling Bee Buddy &mdash; How to Use a Word Helper</div>
+        <div class="art-desc">What a companion tool does, how to use hints without spoiling answers, and strategies that help you reach Genius every day.</div>
+        <div class="art-kd">65,000/mo &bull; KD 2</div>
+      </a>
+      <a href="spelling-bee-solver.html" class="art-card">
+        <div class="art-tag">Guide &bull; Free</div>
+        <div class="art-title">Spelling Bee Solver &mdash; How It Works</div>
+        <div class="art-desc">How our free solver finds every valid word from your 7 letters, labels pangrams, and shows the Genius threshold instantly. No subscription needed.</div>
+        <div class="art-kd">25,000/mo &bull; KD 24</div>
+      </a>
+      <a href="spelling-bee-words.html" class="art-card">
+        <div class="art-tag">Guide &bull; Free</div>
+        <div class="art-title">Spelling Bee Words &mdash; Full Word List Guide</div>
+        <div class="art-desc">How the NYT word list works, which words get accepted and rejected, and letter patterns that unlock entire clusters.</div>
+        <div class="art-kd">32,000/mo &bull; KD 16</div>
+      </a>
+      <a href="answers.html" class="art-card">
+        <div class="art-tag">Strategy &bull; Coming Soon</div>
+        <div class="art-title">How to Find the NYT Spelling Bee Pangram</div>
+        <div class="art-desc">Step-by-step strategies for locating the pangram quickly, common pangram letter patterns, and why finding it early is the fastest path to Genius.</div>
+        <div class="art-kd">8,400/mo &bull; KD 18</div>
+      </a>
+      <a href="answers.html" class="art-card">
+        <div class="art-tag">Strategy &bull; Coming Soon</div>
+        <div class="art-title">NYT Spelling Bee Tips &mdash; How to Get Genius</div>
+        <div class="art-desc">The 15 proven strategies consistent Genius-rank players use every day &mdash; suffix sweeps, vowel clusters, and the first-letter frequency method.</div>
+        <div class="art-kd">6,200/mo &bull; KD 19</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- SHARE STRIP -->
+      <div class="share-strip" aria-label="Share this page">
+    <span class="share-strip-lbl">Share</span>
+    <div class="share-btns">
+      <button class="sbn sbn-native" onclick="if(navigator.share){navigator.share({title:'Spelling Bee Solver   Free NYT Word Finder   Helpe',url:'https://www.spellingbeefinder.com/'});}" aria-label="Share">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      </button>
+      <button class="sbn sbn-copy" id="sbn-copy-index" onclick="navigator.clipboard.writeText('https://www.spellingbeefinder.com/').then(function(){var b=document.getElementById('sbn-copy-index');b.className='sbn sbn-copy copied';b.title='Copied!';setTimeout(function(){b.className='sbn sbn-copy';b.title=''},2500)})" aria-label="Copy link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <a class="sbn sbn-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.spellingbeefinder.com%2F" target="_blank" rel="noopener" aria-label="Share on Facebook">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      </a>
+      <a class="sbn sbn-tw" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.spellingbeefinder.com%2F&text=Spelling%20Bee%20Solver%20%20%20Free%20NYT%20Word%20Finder%20%20%20Helper%202026" target="_blank" rel="noopener" aria-label="Share on X">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a class="sbn sbn-li" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fwww.spellingbeefinder.com%2F" target="_blank" rel="noopener" aria-label="Share on LinkedIn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+      </a>
+      <a class="sbn sbn-wa" href="https://api.whatsapp.com/send?text=Spelling%20Bee%20Solver%20%20%20Free%20NYT%20Word%20Finder%20%20%20Helper%202026%20https%3A%2F%2Fwww.spellingbeefinder.com%2F" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+      </a>
+      <a class="sbn sbn-em" href="mailto:?subject=Spelling%20Bee%20Solver%20%20%20Free%20NYT%20Word%20Finder%20%20%20Helper%202026&body=Check%20this%20out%3A%20https://www.spellingbeefinder.com/" aria-label="Share by email">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </a>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div class="foot-col">
+      <div class="foot-brand-row">
+        <div class="foot-brand-hex"><img src="bee-icon-nav.webp" alt="bee" width="16" height="16" style="object-fit:contain;display:block;" loading="lazy"></div>
+        <span class="foot-brand-name">Spelling<em>Bee</em>Finder</span>
+      </div>
+      <p>Free NYT Spelling Bee word finder. Find every word, master the pangram. Updated 2026.</p>
+    </div>
+    <div class="foot-col">
+      <h4>Tools</h4>
+      <a href="index.html">Spelling Bee Solver</a>
+      <a href="answers.html">Daily Answers Archive</a>
+      <a href="index.html">Hints Mode</a>
+      <a href="index.html">Practice Mode</a>
+    </div>
+    <div class="foot-col">
+      <h4>Resources</h4>
+      <a href="gear.html">Books &amp; Gear</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="foot-col">
+      <h4>Legal</h4>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="disclaimer.html">Disclaimer</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <p>&copy; 2026 SpellingBeeFinder.com &mdash; Not affiliated with The New York Times. Educational tool only.</p>
+    <p>SpellingBeeFinder.com is a participant in the Amazon Services LLC Associates Program (tag: williamdunb0d-20). <a href="disclaimer.html" style="color:#475569;">Full Disclosure</a></p>
+  </div>
+</footer>
+
+<script>
+// WORD DB
+var WORDS=['able','acid','acre','aide','ally','aloe','alto','ante','apex','arch','area','aria','auto','back','bail','bale','balm','band','barn','base','bask','bass','beam','bean','bear','beat','calm','came','cane','cape','care','case','cash','cast','cave','cell','cent','cite','clam','clan','clap','claw','clay','clip','coil','coin','cord','core','cork','corn','cost','cove','damp','dare','dark','dash','date','dawn','deal','dean','deck','deep','dial','dime','dine','each','earn','ease','east','edge','epic','even','evil','exit','fade','fail','fair','fame','fang','farm','fast','fate','fern','file','firm','fish','foam','fold','fond','form','fort','free','fume','gale','game','gave','gaze','gear','gill','glad','glee','glow','glue','gnaw','goal','gown','hale','half','hall','hare','harm','haze','heap','heat','heel','helm','hero','hilt','hook','hope','horn','hose','host','hulk','hull','hunt','hurl','idle','inch','iris','iron','isle','item','jade','join','jolt','jump','keen','kind','king','kite','knot','lace','lack','lake','lame','lamp','lark','lash','last','late','lawn','leaf','leak','lean','leap','lend','lime','link','lint','list','live','lobe','loin','long','loom','loop','lore','mace','made','maid','main','make','male','mall','malt','mane','mare','mark','mate','maze','meal','mean','meat','melt','mesh','mine','mint','mode','mold','mood','moon','muse','must','nail','name','near','neat','need','nest','node','norm','note','nude','numb','pace','pack','pail','pale','palm','pang','park','part','pass','path','pave','pawn','peak','peat','perk','pine','pipe','pith','poke','pole','pore','port','pose','post','rack','rage','rail','rain','rake','rang','rank','rash','rave','read','real','reap','reel','rein','rely','rest','rice','ride','rile','rime','ring','rise','roam','roar','robe','rock','role','roll','rope','rose','ruin','rule','rune','rung','rush','rust','safe','sage','sake','sane','save','seal','seam','seed','silk','sing','sire','soil','sole','soot','span','stir','sulk','tame','tang','tank','tape','taut','team','tear','tide','tile','tilt','time','toil','toll','tone','tune','turf','vain','vale','vane','veil','vein','vine','void','vote','wade','wake','wane','warp','wary','weld','wile','wilt','wink','wire','wise','wolf','word','zeal','zest','zone','zoom','cabin','carry','catch','cause','chain','chair','cheap','check','clean','clear','climb','close','coast','color','count','court','cover','crane','crisp','cross','cycle','dance','dealt','dense','depth','ditch','dizzy','doubt','draft','drama','drink','drive','early','earth','eight','elect','elite','empty','enemy','enjoy','enter','extra','fable','faith','false','fancy','fatal','feast','flame','flare','flesh','float','floor','force','found','frank','fresh','front','fruit','funny','ghost','giant','given','gleam','grace','grant','grasp','greed','green','greet','grief','grind','groan','group','guard','guess','guide','gusto','habit','happy','harsh','haven','heavy','hinge','honor','house','humor','hurry','image','index','inner','ivory','lance','large','laser','later','laugh','layer','learn','lease','least','legal','lemon','level','light','liner','local','lodge','logic','loose','lower','lucky','lunge','magic','manor','maple','march','mason','match','mayor','merry','metal','might','mimic','minor','mixed','model','money','month','moral','mount','mourn','movie','naive','nasty','naval','night','noisy','north','novel','nudge','panic','paper','party','pause','penny','perch','peril','phase','piece','place','plain','plane','point','pound','power','price','pride','prime','prize','probe','proud','prove','prune','radar','radio','raise','rally','range','rapid','reach','ready','realm','repay','rival','river','rivet','rocky','rough','round','route','royal','ruler','rural','sandy','sauce','scale','scene','scope','score','scout','seize','serve','seven','shade','shame','shape','share','shark','sharp','shift','shock','shore','short','shout','siege','sight','since','skill','solar','solid','solve','sorry','south','spare','spark','speed','spine','stage','stake','stand','start','state','steal','steam','steel','stone','store','storm','stout','study','surge','thick','three','tight','title','today','token','total','touch','track','trade','trail','train','trait','treat','trend','trick','trial','tribe','trout','truck','truly','trust','truth','under','union','unite','unity','until','upper','urban','usual','utter','vague','valid','value','vapor','vault','verse','video','vigor','vital','vocal','voice','voter','waste','watch','water','weird','witch','woman','world','worry','worse','worst','worth','would','yacht','yearn','yield','young','youth','acne','acme','ache','lace','mace','mice','lice','mica','cane','lane','lean','lime','mile','mine','line','nail','nice','rice','male','mane','came','lame','clan','clam','claim','email','meal','malic','malice','clinic','lichen','helical','chemical','chalice','acclaim','camellia'];
+WORDS=[...new Set(WORDS.filter(function(w){return w.length>=4;}))];
+
+var DEFS={acme:'noun -- The highest point; peak of excellence.',ache:'noun/verb -- A dull continuous pain; to feel such pain.',each:'determiner -- Every one of two or more things, seen separately.',lace:'noun/verb -- A fine open fabric of thread; to fasten with laces.',mace:'noun -- A spice from nutmeg; a ceremonial staff of authority.',mice:'noun -- Plural of mouse.',lice:'noun -- Parasitic insects; plural of louse.',mica:'noun -- A shiny silicate mineral that splits into thin sheets.',cane:'noun -- A hollow jointed grass stem; a walking stick.',lane:'noun -- A narrow road or division of a wider road.',lean:'verb/adj -- To incline from vertical; slim and healthy.',lime:'noun -- A green citrus fruit; calcium oxide from limestone.',mile:'noun -- A unit of length equal to 1,609 metres.',mine:'pron/noun -- Belonging to me; an underground excavation.',nail:'noun/verb -- A small metal spike; to fasten with nails.',nice:'adj -- Pleasant and agreeable in character.',rice:'noun -- A cereal grain, staple food in many countries.',male:'adj/noun -- Of the sex that produces sperm or pollen.',mane:'noun -- Long hair on a horse or lion\'s neck.',name:'noun/verb -- A word by which someone is known.',came:'verb -- Past tense of come.',lame:'adj -- Unable to walk normally; unconvincing.',clan:'noun -- A close-knit group of related families.',clam:'noun -- A bivalve mollusk with a hard shell.',claim:'verb/noun -- To state as fact; an assertion of ownership.',meal:'noun -- Food eaten at a specific time of day.',malic:'adj -- Relating to malic acid, found in unripe apples.',malice:'noun -- The desire to cause harm to another person.',clinic:'noun -- A place providing specialized medical care.',email:'noun/verb -- Electronic messages sent via the internet.',lichen:'noun -- A plant-like organism growing on rocks or bark.',helical:'adj -- Having the shape of a helix; spiral.',chemical:'noun/adj -- A compound or substance; relating to chemistry.',chalice:'noun -- A goblet used in religious ceremonies.',acclaim:'verb/noun -- To praise enthusiastically; loud public approval.',camellia:'noun -- An ornamental shrub with large glossy flowers.'};
+
+var cells=Array(7).fill(''),activeCell=-1,results=null,revealedHints={},selectedWord=null;
+var RENDER_ORDER=[0,1,5,6,2,3,4],CENTER=6;
+
+function renderHive(){
+  var hive=document.getElementById('hive');hive.innerHTML='';
+  RENDER_ORDER.forEach(function(i){
+    var isC=(i===CENTER),letter=cells[i],isActive=(activeCell===i);
+    var div=document.createElement('div');
+    var cls='hx '+(isC?'hx-center':'hx-outer');
+    if(letter)cls+=' filled';if(isActive)cls+=' active';
+    div.className=cls;div.dataset.i=i;
+    div.setAttribute('role','button');
+    div.setAttribute('aria-label',(isC?'Center letter - required in every word'+(letter?' currently '+letter:''):'Outer letter '+(letter?letter:' - tap to enter a letter'))+(isC?' - amber hex':''));
+    div.setAttribute('tabindex','0');
+    div.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();clickCell(i);}});
+    div.addEventListener('click',function(){clickCell(i);});
+    var el=document.createElement('span');
+    el.className=letter?'hx-ltr':'hx-dot';
+    el.textContent=letter||(isC?'\u2605':'\u00b7');
+    div.appendChild(el);hive.appendChild(div);
+  });
+}
+function renderSlots(){
+  var el=document.getElementById('slots');el.innerHTML='';
+  RENDER_ORDER.forEach(function(i){
+    var isC=(i===CENTER),letter=cells[i];
+    var btn=document.createElement('button');
+    btn.className='slot '+(letter?(isC?'slot-center':'slot-outer'):'slot-empty')+(activeCell===i?' sel':'');
+    btn.textContent=letter||'\u00b7';
+    btn.addEventListener('click',function(){clickCell(i);});
+    el.appendChild(btn);
+  });
+}
+function updateStatus(){
+  var s=document.getElementById('hiveStatus');
+  var allSet=cells.every(function(c){return c!=='';});
+  if(activeCell<0){
+    if(allSet){s.textContent='\u2713 ALL LETTERS SET \u2014 CLICK FIND ALL WORDS';s.className='hive-status ready';}
+    else{s.textContent='TAP A CELL \u2014 TYPE ITS LETTER';s.className='hive-status';}
+  }else if(activeCell===CENTER){s.textContent='CENTER LETTER \u2014 REQUIRED IN EVERY WORD';s.className='hive-status picking';}
+  else{s.textContent='OUTER LETTER '+(activeCell+1)+' OF 6 \u2014 TYPE IT';s.className='hive-status picking';}
+  document.getElementById('btnSolve').disabled=!cells.every(function(c){return c!=='';});
+}
+function clickCell(idx){activeCell=(activeCell===idx)?-1:idx;renderHive();renderSlots();updateStatus();}
+
+document.addEventListener('keydown',function(e){
+  if(activeCell<0)return;
+  var k=e.key.toUpperCase();
+  if(/^[A-Z]$/.test(k)){
+    e.preventDefault();cells[activeCell]=k;
+    var next=-1;
+    for(var i=0;i<RENDER_ORDER.length;i++){var idx=RENDER_ORDER[i];if(!cells[idx]&&idx!==activeCell){next=idx;break;}}
+    activeCell=next;renderHive();renderSlots();updateStatus();
+  }else if(e.key==='Backspace'){e.preventDefault();cells[activeCell]='';renderHive();renderSlots();updateStatus();}
+  else if(e.key==='Enter'){if(cells.every(function(c){return c!=='';}))solveNow();}
+  else if(e.key==='Escape'){activeCell=-1;renderHive();renderSlots();updateStatus();}
+});
+
+function isPangram(w){return cells.every(function(c){return w.includes(c.toLowerCase());});}
+
+function solveNow(){
+  var center=cells[CENTER]?cells[CENTER].toLowerCase():'';if(!center)return;
+  var s=new Set(cells.map(function(c){return c.toLowerCase();}));
+  var found=WORDS.filter(function(w){return w.length>=4&&w.includes(center)&&[...w].every(function(ch){return s.has(ch);});}).sort(function(a,b){return b.length-a.length||a.localeCompare(b);});
+  results=found;selectedWord=null;renderResults(found);buildHints(found);
+}
+
+function renderResults(list){
+  document.getElementById('emptyState').style.display='none';
+  var ra=document.getElementById('resultsArea');ra.style.display='flex';
+  var pangrams=list.filter(isPangram);
+  var totalPts=list.reduce(function(s,w){return s+(w.length===4?1:w.length)+(isPangram(w)?7:0);},0);
+  var geniusPts=Math.ceil(totalPts*.7);
+  // Show pangram celebrate bar for first pangram
+  var pb=document.getElementById('pangramBar');
+  if(pangrams.length>0){
+    pb.classList.add('show');
+    document.getElementById('pangramWord').textContent=pangrams[0].toUpperCase()+' \u2605';
+  }else{pb.classList.remove('show');}
+  // Stats
+  var sb=document.getElementById('statsBar').querySelector('.stats-bar-left');
+  sb.innerHTML='<span class="stat-words">'+list.length+' words found</span>'
+    +(pangrams.length>0?'<span class="badge-pangram">'+pangrams.length+' pangram'+(pangrams.length>1?'s':'')+' \u2605</span>':'')
+    +'<span class="stat-pts">'+totalPts+' pts max &bull; Genius \u2265'+geniusPts+'</span>';
+  // Filters
+  var lengths=[...new Set(list.map(function(w){return w.length;}))].sort(function(a,b){return a-b;});
+  var fb=document.getElementById('filterBar');
+  fb.innerHTML='<button class="pill active" onclick="filterWords(this,\'all\')">All</button>'
+    +lengths.map(function(l){return '<button class="pill" onclick="filterWords(this,'+l+')">'+l+' letters</button>';}).join('');
+  renderChips(list);
+  document.getElementById('defStrip').style.display='none';
+}
+function filterWords(btn,len){
+  btn.closest('.filters').querySelectorAll('.pill').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');btn.dataset.len=len;
+  renderChips(len==='all'?results:results.filter(function(w){return w.length===len;}));
+}
+function wordPts(w){return(w.length===4?1:w.length)+(isPangram(w)?7:0);}
+var sortMode='length';
+function renderChips(list){
+  var wrap=document.getElementById('wordsWrap');wrap.innerHTML='';
+  var sorted=list.slice();
+  if(sortMode==='points'){sorted.sort(function(a,b){return wordPts(b)-wordPts(a)||b.length-a.length||a.localeCompare(b);});}
+  var center=cells[CENTER]?cells[CENTER].toLowerCase():'';
+  sorted.forEach(function(w){
+    var pg=isPangram(w),sel=(w===selectedWord),pts=wordPts(w);
+    var btn=document.createElement('button');
+    btn.className='wchip'+(pg?' pangram':'')+(sel?' selected':'');
+    var wordHtml='<span class="wchip-word">';
+    w.toUpperCase().split('').forEach(function(ch){
+      if(center&&ch===center.toUpperCase()){wordHtml+='<span class="center-ltr">'+ch+'</span>';}
+      else{wordHtml+=ch;}
+    });
+    if(pg)wordHtml+=' \u2605';
+    wordHtml+='</span><span class="wchip-pts">'+pts+'</span>';
+    btn.innerHTML=wordHtml;
+    btn.onclick=function(){showDef(w);};wrap.appendChild(btn);
+  });
+}
+function setSortMode(mode,btn){
+  sortMode=mode;
+  document.querySelectorAll('.sort-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  if(results){
+    var active=document.querySelector('.filters .pill.active');
+    var len=active&&active.dataset.len?active.dataset.len:'all';
+    renderChips(len==='all'?results:results.filter(function(w){return w.length===parseInt(len);}));
+  }
+}
+function showDef(word){
+  selectedWord=(selectedWord===word)?null:word;
+  document.getElementById('wordsWrap').querySelectorAll('.wchip').forEach(function(b){var w=b.textContent.replace(' \u2605','').toLowerCase();b.classList.toggle('selected',w===selectedWord);});
+  var ds=document.getElementById('defStrip');
+  if(!selectedWord){ds.style.display='none';return;}
+  var def=DEFS[selectedWord]||'A valid Spelling Bee word.';
+  ds.style.display='flex';
+  ds.innerHTML='<span class="def-word">'+selectedWord.toUpperCase()+'</span><span class="def-txt">'+def+'</span><button class="def-close" onclick="showDef(\''+selectedWord+'\')" aria-label="Close">\u00d7</button>';
+}
+
+function buildHints(list){
+  var center=cells[CENTER]?cells[CENTER].toUpperCase():'';
+  var groups={};
+
+  /* -- BUILD WORD GRID -- */
+  var gridWrap=document.getElementById('hintsGridWrap');
+  var gridTable=document.getElementById('hintsGridTable');
+  var gridStats=document.getElementById('hintsGridStats');
+  if(gridWrap&&list.length){
+    gridWrap.style.display='block';
+    gridTable.innerHTML='';
+    // Collect all unique lengths
+    var allLens=[...new Set(list.map(function(w){return w.length;}))].sort(function(a,b){return a-b;});
+    // Build grid data: grid[letter][length] = count
+    var gridData={};var firstLetters=[];
+    list.forEach(function(w){
+      var fl=w[0].toUpperCase(),len=w.length;
+      if(!gridData[fl]){gridData[fl]={};firstLetters.push(fl);}
+      gridData[fl][len]=(gridData[fl][len]||0)+1;
+    });
+    firstLetters.sort();
+    // Header row
+    var thead=document.createElement('thead');
+    var hrow=document.createElement('tr');
+    var th0=document.createElement('th');th0.textContent='';hrow.appendChild(th0);
+    allLens.forEach(function(len){
+      var th=document.createElement('th');th.textContent=len;hrow.appendChild(th);
+    });
+    var thTot=document.createElement('th');thTot.textContent='Total';hrow.appendChild(thTot);
+    thead.appendChild(hrow);gridTable.appendChild(thead);
+    // Body rows
+    var tbody=document.createElement('tbody');
+    var colTotals={};allLens.forEach(function(l){colTotals[l]=0;});
+    var grandTotal=0;
+    firstLetters.forEach(function(fl){
+      var tr=document.createElement('tr');
+      var tdLetter=document.createElement('td');
+      tdLetter.textContent=fl;
+      if(fl===center)tdLetter.classList.add('hg-center');
+      tr.appendChild(tdLetter);
+      var rowTotal=0;
+      allLens.forEach(function(len){
+        var td=document.createElement('td');
+        var count=gridData[fl][len]||0;
+        if(count>0){
+          td.textContent=count;
+          td.classList.add('hg-cell');
+          if(fl===center)td.classList.add('hg-center');
+          colTotals[len]+=count;rowTotal+=count;grandTotal+=count;
+          // Tooltip on click
+          (function(f,l,c){
+            td.addEventListener('click',function(e){
+              var tip=document.getElementById('hgTooltip');
+              tip.innerHTML='<strong>'+c+'</strong> word'+(c===1?'':'s')+' start'+(c===1?'s':'')+' with <strong>'+f+'</strong> &bull; <strong>'+l+'</strong> letters each.';
+              tip.style.display='block';
+              tip.style.left=(e.clientX+12)+'px';
+              tip.style.top=(e.clientY-8)+'px';
+              setTimeout(function(){tip.style.display='none';},3000);
+            });
+          })(fl,len,count);
+        } else {
+          td.textContent='\u00b7';
+          td.classList.add('hg-empty');
+        }
+        tr.appendChild(td);
+      });
+      var tdRowTotal=document.createElement('td');tdRowTotal.textContent=rowTotal;tr.appendChild(tdRowTotal);
+      tbody.appendChild(tr);
+    });
+    // Totals row
+    var trTot=document.createElement('tr');trTot.className='hg-total';
+    var tdTotLabel=document.createElement('td');tdTotLabel.textContent='Total';trTot.appendChild(tdTotLabel);
+    allLens.forEach(function(len){
+      var td=document.createElement('td');td.textContent=colTotals[len]||'\u00b7';trTot.appendChild(td);
+    });
+    var tdGrand=document.createElement('td');tdGrand.textContent=grandTotal;trTot.appendChild(tdGrand);
+    tbody.appendChild(trTot);
+    gridTable.appendChild(tbody);
+    // Stats line
+    var totalPts=list.reduce(function(s,w){return s+(w.length===4?1:w.length);},0);
+    var pangrams=list.filter(function(w){return allLens.indexOf(w.length)>=0&&cells.filter(Boolean).every(function(c){return w.toUpperCase().includes(c.toUpperCase());});});
+    gridStats.textContent='This puzzle has '+list.length+' words worth '+totalPts+' points.';
+  } else if(gridWrap){
+    gridWrap.style.display='none';
+  }
+
+  /* -- ORIGINAL LETTER GROUPS -- */
+list.forEach(function(w){var l=w[0].toUpperCase();if(!groups[l])groups[l]=[];groups[l].push(w);});
+  var hintsEmpty=document.getElementById('hintsEmptyState');
+  var hintsContent=document.getElementById('hintsContent');
+  if(hintsEmpty)hintsEmpty.style.display=(list.length?'none':'flex');
+  if(hintsContent)hintsContent.style.display=(list.length?'flex':'none');
+  var hl=document.getElementById('hintsList');hl.innerHTML='';
+  var hes=document.getElementById('hintsEmptyState');
+  if(!list.length){
+    if(hes)hes.style.display='flex';
+    return;
+  }
+  if(hes)hes.style.display='none';
+  Object.keys(groups).sort().forEach(function(letter){
+    var words=groups[letter];
+    var row=document.createElement('div');row.className='hint-row';
+    var badge=document.createElement('div');badge.className='hint-badge';
+    badge.style.background=(letter===center)?'var(--bee)':'var(--s800)';badge.textContent=letter;
+    var info=document.createElement('div');info.className='hint-info';info.id='hi-'+letter;
+    if(revealedHints[letter]){info.innerHTML='<span class="hint-revealed">'+words.map(function(w){return w.toUpperCase();}).join(', ')+'</span>';}
+    else{info.textContent=words.length+' word'+(words.length!==1?'s':'')+' start with '+letter;}
+    var rb=document.createElement('button');rb.className='btn-reveal';
+    if(revealedHints[letter])rb.style.display='none';
+    rb.textContent='Reveal';
+    rb.onclick=(function(l,ws){return function(){revealedHints[l]=true;document.getElementById('hi-'+l).innerHTML='<span class="hint-revealed">'+ws.map(function(w){return w.toUpperCase();}).join(', ')+'</span>';rb.style.display='none';};})(letter,words);
+    row.append(badge,info,rb);hl.appendChild(row);
+  });
+}
+
+function solvePractice(){
+  var allFilled=pracCells.every(function(c){return c!=='';});
+  if(!allFilled){alert('Fill all 7 letter cells in the honeycomb.');return;}
+  var centerLetter=pracCells[CENTER].toLowerCase();
+  var available=new Set(pracCells.map(function(c){return c.toLowerCase();}));
+  var pracResults=WORDS.filter(function(w){
+    return w.length>=4&&w.toLowerCase().includes(centerLetter)&&
+           [...w.toLowerCase()].every(function(ch){return available.has(ch);});
+  }).sort(function(a,b){return b.length-a.length||a.localeCompare(b);});
+  // Render results directly into practice panel elements
+  var ra=document.getElementById('practiceResultsArea');
+  var em=document.getElementById('practiceEmpty');
+  if(em)em.style.display='none';
+  if(ra){ra.style.display='flex';ra.style.flexDirection='column';}
+  // Build stats bar
+  var sb=document.getElementById('practiceStatsBar');
+  if(sb){
+    var pangrams=pracResults.filter(isPangram);
+    var totalPts=pracResults.reduce(function(s,w){return s+(w.length===4?1:w.length)+(isPangram(w)?7:0);},0);
+    var genius=Math.ceil(totalPts*0.7);
+    sb.innerHTML='<span class="stat-words">'+pracResults.length+' words found</span>'
+      +(pangrams.length?'<span class="badge-pangram">'+pangrams.length+' pangram \u2605</span>':'')
+      +'<span class="stat-pts">'+totalPts+' pts max \u00B7 Genius \u2265'+genius+'</span>'
+      +'<div class="sort-toggle"><button class="sort-btn active" onclick="pracSort(\'length\')">Length</button><button class="sort-btn" onclick="pracSort(\'points\')">Points</button></div>';
+  }
+  // Render word chips
+  var ww=document.getElementById('practiceWordsWrap');
+  if(ww){
+    ww.innerHTML='';
+    var center=pracCells[CENTER].toUpperCase();
+    pracResults.forEach(function(w){
+      var pg=isPangram(w);
+      var pts=(w.length===4?1:w.length)+(pg?7:0);
+      var btn=document.createElement('button');
+      btn.className='wchip'+(pg?' pangram':'');
+      var html='<span class="wchip-word">';
+      w.toUpperCase().split('').forEach(function(ch){
+        html+=(ch===center?'<em class="cl">'+ch+'</em>':ch);
+      });
+      html+=(pg?'\u00A0\u2605':'')+'</span><span class="wchip-pts">'+pts+'</span>';
+      btn.innerHTML=html;
+      ww.appendChild(btn);
+    });
+  }
+  window._pracResults=pracResults;
+}
+function pracSort(mode){
+  var ra=document.getElementById('practiceResultsArea');
+  if(!ra||!window._pracResults)return;
+  var sorted=window._pracResults.slice().sort(function(a,b){
+    if(mode==='points'){var pa=(a.length===4?1:a.length)+(isPangram(a)?7:0),pb=(b.length===4?1:b.length)+(isPangram(b)?7:0);return pb-pa;}
+    return b.length-a.length||a.localeCompare(b);
+  });
+  var ww=document.getElementById('practiceWordsWrap');
+  if(!ww)return;
+  var center=pracCells[CENTER].toUpperCase();
+  ww.innerHTML='';
+  sorted.forEach(function(w){
+    var pg=isPangram(w);var pts=(w.length===4?1:w.length)+(pg?7:0);
+    var btn=document.createElement('button');btn.className='wchip'+(pg?' pangram':'');
+    var html='<span class="wchip-word">';
+    w.toUpperCase().split('').forEach(function(ch){html+=(ch===center?'<em class="cl">'+ch+'</em>':ch);});
+    html+=(pg?'\u00A0\u2605':'')+'</span><span class="wchip-pts">'+pts+'</span>';
+    btn.innerHTML=html;ww.appendChild(btn);
+  });
+  // Update active sort button
+  document.querySelectorAll('#practiceStatsBar .sort-btn').forEach(function(b){
+    b.classList.toggle('active',b.textContent.toLowerCase()===mode);
+  });
+}
+
+function switchTab(tab){
+  var tool=document.querySelector('.tool');
+  if(tool){tool.classList.toggle('practice-mode',tab==='practice');}
+  if(tab==='practice'){initPractice();}
+  var hs=document.getElementById('hiveStatus');
+  if(hs){hs.style.display=(tab==='solve'?'block':'none');}
+  // If switching to hints with no results yet, show the empty state
+  if(tab==='hints'){
+    var hes=document.getElementById('hintsEmptyState');
+    var hc=document.getElementById('hintsContent');
+    if(!results||!results.length){
+      if(hes)hes.style.display='flex';
+      if(hc)hc.style.display='none';
+    } else {
+      if(hes)hes.style.display='none';
+      if(hc)hc.style.display='flex';
+    }
+  }
+  ['solve','hints','practice'].forEach(function(t){
+    var T=t.charAt(0).toUpperCase()+t.slice(1);
+    document.getElementById('tab'+T).classList.toggle('active',t===tab);
+    var p=document.getElementById('panel'+T);
+    p.style.display=(t===tab)?(t==='solve'?'block':'flex'):'none';
+    if(t==='solve'&&tab==='solve')p.style.flexDirection='column';
+    document.getElementById('tab'+T).setAttribute('aria-selected',t===tab);
+  });
+}
+
+function clearAll(){
+  cells=Array(7).fill('');activeCell=-1;results=null;selectedWord=null;revealedHints={};
+  renderHive();renderSlots();updateStatus();
+  document.getElementById('emptyState').style.display='flex';
+  document.getElementById('resultsArea').style.display='none';
+  document.getElementById('defStrip').style.display='none';
+  document.getElementById('pangramBar').classList.remove('show');
+  var hes2=document.getElementById('hintsEmptyState');
+  if(hes2)hes2.style.display='flex';
+  document.getElementById('hintsList').innerHTML='';
+}
+
+function toggleFaq(btn){
+  var ans=btn.nextElementSibling,chevron=btn.querySelector('.faq-chevron');
+  var open=ans.classList.contains('open');
+  ans.classList.toggle('open',!open);chevron.classList.toggle('open',!open);
+  btn.setAttribute('aria-expanded',!open);
+}
+
+// Archive grid \u2014 last 10 days of demo data
+var archiveData=[
+  {date:'June 22',slug:'spelling-bee-june-22-2026',month:'JUN',day:'22',center:'C',letters:'A H L E I M',pangram:'CHEMICAL',words:22,pts:75},
+  {date:'June 21',slug:'spelling-bee-june-21-2026',month:'JUN',day:'21',center:'N',letters:'O C H A L E',pangram:'NONCHALANCE',words:18,pts:62},
+  {date:'June 20',slug:'spelling-bee-june-20-2026',month:'JUN',day:'20',center:'F',letters:'O R C I N G',pangram:'FORCING',words:27,pts:96},
+  {date:'June 19',slug:'spelling-bee-june-19-2026',month:'JUN',day:'19',center:'T',letters:'A I M N R V',pangram:'MARINATING',words:31,pts:108},
+  {date:'June 18',slug:'spelling-bee-june-18-2026',month:'JUN',day:'18',center:'E',letters:'A B C I K L',pangram:'AILABLE',words:24,pts:84},
+  {date:'June 17',slug:'spelling-bee-june-17-2026',month:'JUN',day:'17',center:'G',letters:'A C D E H N',pangram:'UNCHANGED',words:19,pts:71},
+  {date:'June 16',slug:'spelling-bee-june-16-2026',month:'JUN',day:'16',center:'L',letters:'A C E I M H',pangram:'ALCHEMICAL',words:20,pts:78},
+  {date:'June 15',slug:'spelling-bee-june-15-2026',month:'JUN',day:'15',center:'R',letters:'A C E D N T',pangram:'REDACTED',words:28,pts:94},
+  {date:'June 14',slug:'spelling-bee-june-14-2026',month:'JUN',day:'14',center:'O',letters:'A H I L N T',pangram:'INHALATION',words:22,pts:83},
+  {date:'June 13',slug:'spelling-bee-june-13-2026',month:'JUN',day:'13',center:'A',letters:'B C D K O R',pangram:'ROADBLOCK',words:16,pts:61},
+];
+(function buildArchive(){
+  var grid=document.getElementById('archiveGrid');
+  archiveData.forEach(function(d){
+    var a=document.createElement('a');
+    a.href='answers/'+d.slug+'.html';
+    a.className='archive-card';
+    a.innerHTML='<div class="archive-date-badge"><div class="archive-month">'+d.month+'</div><div class="archive-day">'+d.day+'</div></div>'
+      +'<div class="archive-info">'
+      +'<div class="archive-title">Spelling Bee '+d.date+' Answers</div>'
+      +'<div class="archive-meta">Center: <strong>'+d.center+'</strong> &bull; <span class="archive-pangram">'+d.pangram+' \u2605</span> &bull; '+d.words+' words</div>'
+      +'</div>';
+    grid.appendChild(a);
+  });
+})();
+
+// Nav ham
+document.getElementById('navHam').addEventListener('click',function(){document.getElementById('navLinks').classList.toggle('open');});
+/* ACCESSIBILITY */
+function toggleA11yPanel(){
+  var p=document.getElementById('a11yPanel');
+  p.classList.toggle('open');
+}
+function toggleHC(){
+  var on=document.body.classList.toggle('hc-mode');
+  var btn=document.getElementById('hcToggle');
+  btn.classList.toggle('on',on);
+  btn.setAttribute('aria-pressed',on);
+  try{localStorage.setItem('sbf-hc',on?'1':'0');}catch(e){}
+}
+function toggleLG(){
+  var on=document.body.classList.toggle('lg-text');
+  var btn=document.getElementById('lgToggle');
+  btn.classList.toggle('on',on);
+  btn.setAttribute('aria-pressed',on);
+  try{localStorage.setItem('sbf-lg',on?'1':'0');}catch(e){}
+}
+// Restore preferences on load
+(function(){
+  try{
+    if(localStorage.getItem('sbf-hc')==='1'){document.body.classList.add('hc-mode');var b=document.getElementById('hcToggle');if(b){b.classList.add('on');b.setAttribute('aria-pressed','true');}}
+    if(localStorage.getItem('sbf-lg')==='1'){document.body.classList.add('lg-text');var b=document.getElementById('lgToggle');if(b){b.classList.add('on');b.setAttribute('aria-pressed','true');}}
+  }catch(e){}
+})();
+// Close a11y panel on outside click
+document.addEventListener('click',function(e){
+  var panel=document.getElementById('a11yPanel');
+  var btn=document.getElementById('a11yBtn');
+  if(panel&&btn&&!panel.contains(e.target)&&!btn.contains(e.target)){panel.classList.remove('open');}
+});
+
+document.addEventListener('scroll',function(){var t=document.getElementById('hgTooltip');if(t)t.style.display='none';},true);
+
+// Init with demo letters
+(function init(){
+  renderHive();renderSlots();updateStatus();
+  setTimeout(function(){cells=['C','A','L','E','I','H','M'];renderHive();renderSlots();updateStatus();},400);
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
+})();
+
+// \u2500\u2500 PRACTICE MODE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+var pracCells = Array(7).fill('');
+var pracActiveCell = -1;
+var CENTER = 6;
+
+function renderPracticeHive() {
+  var hive = document.getElementById('practiceHive');
+  if (!hive) return;
+  hive.innerHTML = '';
+  var RENDER_ORDER = [0,1,5,6,2,3,4];
+  RENDER_ORDER.forEach(function(i) {
+    var isC = (i === CENTER);
+    var letter = pracCells[i];
+    var div = document.createElement('div');
+    var cls = 'hx ' + (isC ? 'hx-center' : 'hx-outer');
+    if (letter) cls += ' filled';
+    if (pracActiveCell === i) cls += ' active';
+    div.className = cls;
+    div.dataset.i = i;
+    div.setAttribute('role','button');
+    div.setAttribute('aria-label', (isC ? 'Center' : 'Outer') + ' letter' + (letter ? ' ' + letter : ''));
+    div.addEventListener('click', function() { clickPracCell(i); });
+    var el = document.createElement('span');
+    el.className = letter ? 'hx-ltr' : 'hx-dot';
+    el.textContent = letter || (isC ? '\u2605' : '\u00B7');
+    div.appendChild(el);
+    hive.appendChild(div);
+  });
+}
+
+function renderPracticeSlots() {
+  var el = document.getElementById('practiceSlots');
+  if (!el) return;
+  el.innerHTML = '';
+  [0,1,5,6,2,3,4].forEach(function(i) {
+    var isC = (i === CENTER);
+    var letter = pracCells[i];
+    var btn = document.createElement('button');
+    btn.className = 'slot ' + (letter ? (isC ? 'slot-center' : 'slot-outer') : 'slot-empty') + (pracActiveCell === i ? ' sel' : '');
+    btn.textContent = letter || '\u00B7';
+    btn.addEventListener('click', function() { clickPracCell(i); });
+    el.appendChild(btn);
+  });
+}
+
+function updatePracticeStatus() {
+  var s = document.getElementById('practiceStatus');
+  if (!s) return;
+  var allSet = pracCells.every(function(c) { return c !== ''; });
+  if (pracActiveCell === CENTER) {
+    s.textContent = 'CENTER LETTER \u2014 REQUIRED IN EVERY WORD';
+    s.style.color = 'var(--amber)';
+  } else if (pracActiveCell >= 0) {
+    s.textContent = 'OUTER LETTER \u2014 TYPE IT';
+    s.style.color = 'var(--amber)';
+  } else if (allSet) {
+    s.textContent = '\u2713 ALL LETTERS SET \u2014 CLICK FIND ALL WORDS';
+    s.style.color = 'var(--green)';
+  } else {
+    s.textContent = 'TAP A CELL \u2014 TYPE ITS LETTER';
+    s.style.color = 'var(--amber)';
+  }
+  var btn = document.getElementById('practiceSolveBtn');
+  if (btn) btn.disabled = !allSet;
+}
+
+function clickPracCell(i) {
+  pracActiveCell = i;
+  renderPracticeHive();
+  renderPracticeSlots();
+  updatePracticeStatus();
+  // Capture next keypress
+  document.getElementById('panelPractice').focus();
+}
+
+function clearPractice() {
+  pracCells = Array(7).fill('');
+  pracActiveCell = -1;
+  var ra = document.getElementById('practiceResultsArea');
+  var em = document.getElementById('practiceEmpty');
+  if (ra) ra.style.display = 'none';
+  if (em) em.style.display = 'flex';
+  renderPracticeHive();
+  renderPracticeSlots();
+  updatePracticeStatus();
+}
+
+function solvePractice() {
+  var center = pracCells[CENTER].toLowerCase();
+  if (!center) return;
+  var allLetters = pracCells.map(function(c) { return c.toLowerCase(); });
+  // Filter word list using practice letters
+  var list = WORDS.filter(function(w) {
+    var wl = w.toLowerCase();
+    if (wl.length < 4) return false;
+    if (!wl.includes(center)) return false;
+    return wl.split('').every(function(c) { return allLetters.includes(c); });
+  });
+  list.sort(function(a,b) { return b.length - a.length || a.localeCompare(b); });
+  
+  var ra = document.getElementById('practiceResultsArea');
+  var em = document.getElementById('practiceEmpty');
+  var sb = document.getElementById('practiceStatsBar');
+  var ww = document.getElementById('practiceWordsWrap');
+  
+  if (!list.length) {
+    if (sb) sb.innerHTML = '<span style="font-size:16px;font-weight:700;color:var(--s700);padding:12px 16px;">No valid words found for this combination.</span>';
+    if (ww) ww.innerHTML = '';
+  } else {
+    var total = list.reduce(function(s,w) { return s + wordPts(w); }, 0);
+    var pgs = list.filter(function(w) { return isPangram(w, pracCells); });
+    if (sb) sb.innerHTML = '<div class="stats-bar-left"><span class="stat-words">' + list.length + ' words</span>' + (pgs.length ? '<span class="badge-pangram">' + pgs.length + ' pangram \u2605</span>' : '') + '<span class="stat-pts">' + total + ' pts max</span></div>';
+    if (ww) {
+      ww.innerHTML = '';
+      list.forEach(function(w) {
+        var pg = isPangram(w, pracCells);
+        var pts = wordPts(w);
+        var btn = document.createElement('button');
+        btn.className = 'wchip' + (pg ? ' pangram' : '');
+        var html = '<span class="wchip-word">';
+        w.toUpperCase().split('').forEach(function(ch) {
+          html += (ch === pracCells[CENTER].toUpperCase() ? '<em>' + ch + '</em>' : ch);
+        });
+        html += (pg ? ' \u2605' : '') + '</span><span class="wchip-pts">' + pts + '</span>';
+        btn.innerHTML = html;
+        ww.appendChild(btn);
+      });
+    }
+  }
+  
+  if (ra) { ra.style.display = 'flex'; ra.style.flexDirection = 'column'; }
+  if (em) em.style.display = 'none';
+}
+
+// \u2500\u2500 PRACTICE KEYBOARD HANDLING \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+document.addEventListener('keydown', function(e) {
+  // Only intercept when practice tab is active and a cell is selected
+  var pp = document.getElementById('panelPractice');
+  if (!pp || pp.style.display === 'none') return;
+  if (pracActiveCell < 0) return;
+  var ch = e.key.toUpperCase();
+  if (/^[A-Z]$/.test(ch)) {
+    pracCells[pracActiveCell] = ch;
+    // Advance to next empty cell
+    var next = -1;
+    var order = [CENTER,0,1,5,2,3,4];
+    var ci = order.indexOf(pracActiveCell);
+    for (var j = 1; j < order.length; j++) {
+      var ni = order[(ci + j) % order.length];
+      if (!pracCells[ni]) { next = ni; break; }
+    }
+    pracActiveCell = next;
+    renderPracticeHive();
+    renderPracticeSlots();
+    updatePracticeStatus();
+    e.preventDefault();
+  } else if (e.key === 'Backspace') {
+    pracCells[pracActiveCell] = '';
+    renderPracticeHive();
+    renderPracticeSlots();
+    updatePracticeStatus();
+    e.preventDefault();
+  } else if (e.key === 'Escape') {
+    pracActiveCell = -1;
+    renderPracticeHive();
+    renderPracticeSlots();
+    updatePracticeStatus();
+  }
+});
+
+// Helper: isPangram for practice mode (uses practice cells)
+function isPangram(w, cells) {
+  var cl = cells || window.cells;
+  return cl.every(function(c) { return c && w.toLowerCase().includes(c.toLowerCase()); });
+}
+
+// Init practice hive when switching to practice tab
+function initPractice() {
+  clearPractice();
+}
+
+</script>
+</body>
+</html>
