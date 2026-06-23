@@ -1,0 +1,66 @@
+name: Daily Spelling Bee Answer Page
+
+on:
+  schedule:
+    # 5:05 UTC = 12:05am ET (EST) / 1:05am ET (EDT)
+    - cron: '5 5 * * *'
+  workflow_dispatch:
+    # Also allows manual trigger from GitHub UI if needed
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install node-fetch@2 ftp-deploy
+
+      - name: Generate today's answer page
+        run: node scripts/generate-answer-page.js
+        env:
+          TZ: America/New_York
+
+      - name: Update archive index
+        run: node scripts/update-archive.js
+        env:
+          TZ: America/New_York
+
+      - name: Deploy to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          local-dir: ./answers/
+          server-dir: /public_html/answers/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+
+      - name: Deploy updated archive index
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          local-dir: ./
+          server-dir: /public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/scripts/**
+            **/.github/**
+            **/answers/**
