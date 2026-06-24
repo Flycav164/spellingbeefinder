@@ -1,0 +1,14 @@
+{
+  "name": "spellingbeefinder-automation",
+  "version": "1.0.0",
+  "description": "Daily Spelling Bee answer page generator for SpellingBeeFinder.com",
+  "scripts": {
+    "generate": "node scripts/generate-answer-page.js",
+    "update-archive": "node scripts/update-archive.js",
+    "daily": "node scripts/generate-answer-page.js && node scripts/update-archive.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "ftp-deploy": "^2.4.7"
+  }
+}
