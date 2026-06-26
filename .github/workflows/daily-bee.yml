@@ -2,10 +2,8 @@ name: Daily Spelling Bee Answer Page
 
 on:
   schedule:
-    # 5:05 UTC = 12:05am ET (EST) / 1:05am ET (EDT)
     - cron: '5 5 * * *'
   workflow_dispatch:
-    # Also allows manual trigger from GitHub UI if needed
 
 jobs:
   generate-and-deploy:
@@ -15,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -22,12 +22,22 @@ jobs:
           node-version: '24'
 
       - name: Install dependencies
-        run: npm install node-fetch@2 ftp-deploy
+        run: npm install ftp-deploy
 
       - name: Generate today's answer page
         run: node scripts/generate-answer-page.js
         env:
           TZ: America/New_York
+
+      - name: Commit generated files to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add answers/
+          git diff --staged --quiet || git commit -m "Auto: add spelling bee answers $(date +'%Y-%m-%d')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update archive index
         run: node scripts/update-archive.js
