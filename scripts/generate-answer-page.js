@@ -2,7 +2,8 @@
 // Fetches today's Spelling Bee answers from nytbee.com HTML page
 // Runs daily at 5:05am UTC via GitHub Actions
 
-const fetch = require('node-fetch');
+const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
@@ -30,16 +31,60 @@ function wordPoints(word, allLetters) {
   return { pts: isPangram ? pts + 7 : pts, isPangram };
 }
 
+// Native https GET — handles redirects, no compression issues
+function fetchUrl(urlStr, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(urlStr);
+    const lib = parsedUrl.protocol === 'https:' ? https : http;
+    const options = {
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Encoding': 'identity',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Connection': 'close'
+      }
+    };
+
+    const req = lib.request(options, (res) => {
+      // Follow redirects (up to 5)
+      if ((res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) && res.headers.location) {
+        const redirectUrl = res.headers.location.startsWith('http')
+          ? res.headers.location
+          : `${parsedUrl.protocol}//${parsedUrl.hostname}${res.headers.location}`;
+        fetchUrl(redirectUrl, timeoutMs).then(resolve).catch(reject);
+        return;
+      }
+      if (res.statusCode !== 200) {
+        reject(new Error(`HTTP ${res.statusCode}`));
+        return;
+      }
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+      res.on('error', reject);
+    });
+
+    req.setTimeout(timeoutMs, () => {
+      req.destroy();
+      reject(new Error(`Timeout after ${timeoutMs}ms`));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
 // Fetch from nytbee.com HTML page
 async function fetchFromNytBee(compact) {
   const url = `https://nytbee.com/Bee_${compact}.html`;
   console.log(`Fetching: ${url}`);
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SpellingBeeFinder/1.0)' },
-    timeout: 20000
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const html = await res.text();
+  const html = await fetchUrl(url, 25000);
+
+  if (!html || html.length < 500) throw new Error('Response too short — likely blocked or empty');
 
   // Extract word list — nytbee uses <li> tags for answers
   const wordMatches = html.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
@@ -62,7 +107,6 @@ async function fetchFromNytBee(compact) {
   const geniusScore = geniusMatch ? parseInt(geniusMatch[1]) : Math.ceil(maxScore * 0.7);
 
   // Determine center letter from pangram and word list
-  // Center letter must appear in ALL words
   let centerLetter = '';
   if (pangram) {
     for (const ch of pangram) {
@@ -90,12 +134,9 @@ async function fetchFromNytBee(compact) {
 async function fetchFallback(dates) {
   const url = `https://spellingbee-answers.com/`;
   console.log(`Trying fallback: ${url}`);
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SpellingBeeFinder/1.0)' },
-    timeout: 20000
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const html = await res.text();
+  const html = await fetchUrl(url, 25000);
+
+  if (!html || html.length < 200) throw new Error('Fallback response too short');
 
   // Look for word list patterns
   const wordMatches = html.match(/\b([a-z]{4,})\b/g);
@@ -397,7 +438,7 @@ async function main() {
 
   const outputPath = path.join(__dirname, '..', 'answers', dates.filename);
   if (fs.existsSync(outputPath)) {
-    console.log(`Page already exists: ${dates.filename} — skipping`);
+    console.log(`Page already exists: ${dates.filename} -- skipping`);
     process.exit(0);
   }
 
