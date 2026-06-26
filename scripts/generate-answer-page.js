@@ -106,23 +106,29 @@ async function fetchFromNytBee(compact) {
   const maxScore = maxMatch ? parseInt(maxMatch[1]) : 0;
   const geniusScore = geniusMatch ? parseInt(geniusMatch[1]) : Math.ceil(maxScore * 0.7);
 
-  // Determine center letter from pangram and word list
+  const allLetters = pangram ? [...new Set(pangram.split(''))] : [];
+
+  // Filter out stray words that share no letters with the pangram
+  // (nytbee.com occasionally includes navigation/UI text as list items)
+  const validWords = allLetters.length
+    ? words.filter(w => allLetters.some(l => w.includes(l)))
+    : words;
+
+  // Determine center letter: the one letter that appears in ALL valid words
   let centerLetter = '';
   if (pangram) {
-    for (const ch of pangram) {
-      if (words.every(w => w.includes(ch))) {
+    for (const ch of allLetters) {
+      if (validWords.every(w => w.includes(ch))) {
         centerLetter = ch;
         break;
       }
     }
   }
 
-  const allLetters = pangram ? [...new Set(pangram.split(''))] : [];
-
   return {
     centerLetter,
     allLetters,
-    words: words.sort((a,b) => b.length - a.length || a.localeCompare(b)),
+    words: validWords.sort((a,b) => b.length - a.length || a.localeCompare(b)),
     pangrams: pangram ? [pangram] : [],
     maxScore,
     geniusScore,
