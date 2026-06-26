@@ -1,76 +1,57 @@
+
 name: Daily Spelling Bee Answer Page
 
 on:
-  schedule:
-    - cron: '5 5 * * *'
-  workflow_dispatch:
+ schedule:
+   - cron: '5 5 * * *'
+ workflow_dispatch:
 
 jobs:
-  generate-and-deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+ generate-and-deploy:
+   runs-on: ubuntu-latest
+   timeout-minutes: 10
+   permissions:
+     contents: write
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+   steps:
+     - name: Checkout repository
+       uses: actions/checkout@v4
+       with:
+         token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
+     - name: Setup Node.js
+       uses: actions/setup-node@v4
+       with:
+         node-version: '24'
 
-      - name: Install dependencies
-        run: npm install ftp-deploy
+     - name: Install dependencies
+       run: npm install ftp-deploy
 
-      - name: Generate today's answer page
-        run: node scripts/generate-answer-page.js
-        env:
-          TZ: America/New_York
+     - name: Generate today's answer page
+       run: node scripts/generate-answer-page.js
+       env:
+         TZ: America/New_York
 
-      - name: Commit generated files to repo
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add answers/
-          git diff --staged --quiet || git commit -m "Auto: add spelling bee answers $(date +'%Y-%m-%d')"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+     - name: Commit generated files to repo
+       run: |
+         git config user.name "github-actions[bot]"
+         git config user.email "github-actions[bot]@users.noreply.github.com"
+         git add answers/
+         git diff --staged --quiet || git commit -m "Auto: add spelling bee answers $(date +'%Y-%m-%d')"
+         git push
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update archive index
-        run: node scripts/update-archive.js
-        env:
-          TZ: America/New_York
+     - name: Update archive index
+       run: node scripts/update-archive.js
+       env:
+         TZ: America/New_York
 
-      - name: Deploy to Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          local-dir: ./answers/
-          server-dir: /public_html/answers/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-
-      - name: Deploy updated archive index
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          local-dir: ./
-          server-dir: /public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/scripts/**
-            **/.github/**
-            **/answers/**
+     - name: Deploy to Hostinger via FTP
+       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+       with:
+         server: ${{ secrets.FTP_HOST }}
+         username: ${{ secrets.FTP_USERNAME }}
+         password: ${{ secrets.FTP_PASSWORD }}
+         port: 21
+         local-dir
