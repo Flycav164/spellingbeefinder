@@ -2,7 +2,6 @@ name: Daily Spelling Bee Health Check
 
 on:
   schedule:
-    # Runs at 10:05 AM ET (15:05 UTC) — 1 hour after main workflow
     - cron: '5 15 * * *'
   workflow_dispatch:
 
@@ -10,126 +9,24 @@ jobs:
   health-check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Check today's answer page
         id: check
         run: |
-          # Build today's slug
           TODAY=$(TZ="America/New_York" date +'%Y-%m-%d')
           MONTH=$(TZ="America/New_York" date +'%B' | tr '[:upper:]' '[:lower:]')
           DAY=$(TZ="America/New_York" date +'%d')
           YEAR=$(TZ="America/New_York" date +'%Y')
           SLUG="spelling-bee-${MONTH}-${DAY}-${YEAR}"
           JSON_URL="https://www.spellingbeefinder.com/answers/${SLUG}.json"
-
           echo "Checking: $JSON_URL"
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
           echo "date=$TODAY" >> $GITHUB_OUTPUT
           echo "json_url=$JSON_URL" >> $GITHUB_OUTPUT
-
-          # Fetch the JSON
           HTTP_CODE=$(curl -s -o /tmp/bee.json -w "%{http_code}" "$JSON_URL")
           echo "HTTP status: $HTTP_CODE"
-
           if [ "$HTTP_CODE" != "200" ]; then
             echo "status=FAIL" >> $GITHUB_OUTPUT
-            echo "reason=JSON file not found (HTTP $HTTP_CODE). The daily workflow may have failed to deploy." >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Parse totalWords
-          TOTAL_WORDS=$(python3 -c "import json,sys; d=json.load(open('/tmp/bee.json')); print(d.get('totalWords',0))")
-          PANGRAM=$(python3 -c "import json,sys; d=json.load(open('/tmp/bee.json')); print(d.get('pangram','MISSING'))")
-          echo "totalWords=$TOTAL_WORDS"
-          echo "pangram=$PANGRAM"
-          echo "total_words=$TOTAL_WORDS" >> $GITHUB_OUTPUT
-          echo "pangram=$PANGRAM" >> $GITHUB_OUTPUT
-
-          if [ "$TOTAL_WORDS" -lt 10 ] 2>/dev/null; then
-            echo "status=FAIL" >> $GITHUB_OUTPUT
-            echo "reason=Word count is $TOTAL_WORDS (expected 15+). The scraper may have failed to parse nytbee.com." >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          if [ "$PANGRAM" = "MISSING" ] || [ -z "$PANGRAM" ]; then
-            echo "status=FAIL" >> $GITHUB_OUTPUT
-            echo "reason=Pangram is missing from the JSON. The scraper parsed words but failed to find the pangram." >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "status=OK" >> $GITHUB_OUTPUT
-          echo "reason=All checks passed. $TOTAL_WORDS words, pangram: $PANGRAM" >> $GITHUB_OUTPUT
-
-      - name: Send alert email on failure
-        if: steps.check.outputs.status == 'FAIL'
-        run: |
-          python3 << 'PYEOF'
-          import smtplib
-          from email.mime.text import MIMEText
-          from email.mime.multipart import MIMEMultipart
-          import os
-
-          sender = "billy.bob.dunbar@gmail.com"
-          recipient = "billy.bob.dunbar@gmail.com"
-          password = os.environ['GMAIL_APP_PASSWORD']
-
-          slug = os.environ['SLUG']
-          date = os.environ['DATE']
-          reason = os.environ['REASON']
-          json_url = os.environ['JSON_URL']
-
-          subject = f"ALERT: SpellingBeeFinder daily update failed ({date})"
-
-          body = f"""SpellingBeeFinder Health Check FAILED
-
-Date: {date}
-Slug: {slug}
-JSON URL: {json_url}
-
-Reason: {reason}
-
-What to check:
-1. Go to GitHub Actions and look at the "Daily Spelling Bee Answer Page" run for today
-2. Check the "Generate today's answer page" step logs
-3. Check the "Deploy answer pages to Hostinger" step logs
-4. If the JSON file is missing, the main workflow failed to run or deploy
-5. If word count is low, nytbee.com may have changed their page structure
-
-Direct link to fix:
-https://github.com/Flycav164/spellingbeefinder/actions
-
-You can also run the workflow manually from that page.
-
--- SpellingBeeFinder Health Monitor
-"""
-
-          msg = MIMEMultipart()
-          msg['From'] = sender
-          msg['To'] = recipient
-          msg['Subject'] = subject
-          msg.attach(MIMEText(body, 'plain'))
-
-          try:
-              with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                  server.login(sender, password)
-                  server.sendmail(sender, recipient, msg.as_string())
-              print("Alert email sent successfully")
-          except Exception as e:
-              print(f"Failed to send email: {e}")
-              raise
-          PYEOF
-        env:
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          SLUG: ${{ steps.check.outputs.slug }}
-          DATE: ${{ steps.check.outputs.date }}
-          REASON: ${{ steps.check.outputs.reason }}
-          JSON_URL: ${{ steps.check.outputs.json_url }}
-
-      - name: Log success
-        if: steps.check.outputs.status == 'OK'
-        run: |
-          echo "Health check PASSED"
-          echo "Date: ${{ steps.check.outputs.date }}"
-          echo "Words: ${{ steps.check.outputs.total_words }}"
-          echo "Pangram: ${{ steps.check.outputs.pangram }}"
+            echo "reason=JSON file not found (HTTP $HTTP_CODE). The daily workflow
