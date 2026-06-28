@@ -86,21 +86,56 @@ async function fetchFromNytBee(compact) {
 
   if (!html || html.length < 500) throw new Error('Response too short — likely blocked or empty');
 
-  // Extract word list — nytbee uses <li> tags for answers
-  const wordMatches = html.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
-  if (!wordMatches || wordMatches.length < 5) throw new Error('Could not parse word list');
-  const words = [...new Set(wordMatches
-    .map(m => { const t = m.replace(/<[^>]+>/g, '').trim(); return t.toUpperCase(); })
-    .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
-  )];
+  let words = [];
 
-  // Extract pangram (marked with == or bold)
+  // Method 1: plain text dash-list pattern — nytbee renders "- word" lines
+  const dashMatches = html.match(/^-\s+([a-z]+)\s*$/gim);
+  if (dashMatches && dashMatches.length >= 5) {
+    words = [...new Set(
+      dashMatches
+        .map(m => m.replace(/^-\s+/, '').trim().toUpperCase())
+        .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
+    )];
+    console.log(`Method 1 (dash-list): ${words.length} words`);
+  }
+
+  // Method 2: <li> tags
+  if (words.length < 5) {
+    const liMatches = html.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
+    if (liMatches && liMatches.length >= 5) {
+      words = [...new Set(
+        liMatches
+          .map(m => m.replace(/<[^>]+>/g, '').trim().toUpperCase())
+          .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
+      )];
+      console.log(`Method 2 (<li> tags): ${words.length} words`);
+    }
+  }
+
+  // Method 3: look for the official answers block — nytbee lists them
+  // after "The official answers for today's puzzle are:"
+  if (words.length < 5) {
+    const blockMatch = html.match(/official answers[^]*?(?=\n\n|\r\n\r\n|<\/)/i);
+    if (blockMatch) {
+      const block = blockMatch[0];
+      const found = block.match(/\b([a-z]{4,})\b/g);
+      if (found) {
+        words = [...new Set(found.map(w => w.toUpperCase()))];
+        console.log(`Method 3 (answers block): ${words.length} words`);
+      }
+    }
+  }
+
+  if (words.length < 5) throw new Error(`Could not parse word list (found ${words.length})`);
+
+  // Pangram: marked as ==**word**== in nytbee markdown output
   const pangramMatch = html.match(/==\*\*([a-z]+)\*\*==/i) ||
+                       html.match(/\*\*([a-z]{7,})\*\*/i) ||
                        html.match(/class="pangram[^"]*">([a-z]+)</i) ||
                        html.match(/<strong>([a-z]{7,})<\/strong>/i);
   const pangram = pangramMatch ? pangramMatch[1].toUpperCase() : '';
 
-  // Extract stats
+  // Stats
   const maxMatch = html.match(/Maximum Puzzle Score:\s*(\d+)/i);
   const geniusMatch = html.match(/Points Needed for Genius:\s*(\d+)/i);
   const maxScore = maxMatch ? parseInt(maxMatch[1]) : 0;
@@ -108,13 +143,12 @@ async function fetchFromNytBee(compact) {
 
   const allLetters = pangram ? [...new Set(pangram.split(''))] : [];
 
-  // Filter out stray words that share no letters with the pangram
-  // (nytbee.com occasionally includes navigation/UI text as list items)
+  // Filter to only words sharing letters with the pangram set
   const validWords = allLetters.length
     ? words.filter(w => allLetters.some(l => w.includes(l)))
     : words;
 
-  // Determine center letter: the one letter that appears in ALL valid words
+  // Center letter: appears in every valid word
   let centerLetter = '';
   if (pangram) {
     for (const ch of allLetters) {
@@ -125,6 +159,8 @@ async function fetchFromNytBee(compact) {
     }
   }
 
+  console.log(`Parsed: ${validWords.length} words, pangram: ${pangram}, center: ${centerLetter}`);
+
   return {
     centerLetter,
     allLetters,
@@ -132,7 +168,7 @@ async function fetchFromNytBee(compact) {
     pangrams: pangram ? [pangram] : [],
     maxScore,
     geniusScore,
-    totalWords: words.length
+    totalWords: validWords.length
   };
 }
 
@@ -144,7 +180,6 @@ async function fetchFallback(dates) {
 
   if (!html || html.length < 200) throw new Error('Fallback response too short');
 
-  // Look for word list patterns
   const wordMatches = html.match(/\b([a-z]{4,})\b/g);
   if (!wordMatches) throw new Error('Could not parse fallback');
 
@@ -223,7 +258,7 @@ function generateHtml(dates, answers) {
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4943534579898039" crossorigin="anonymous"></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Spelling Bee ${friendly} Answers","datePublished":"${iso}","dateModified":"${iso}","author":{"@type":"Organization","name":"SpellingBeeFinder"},"publisher":{"@type":"Organization","name":"SpellingBeeFinder","url":"https://www.spellingbeefinder.com"},"description":"${metaDesc}"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the Spelling Bee answer for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. The center letter is ${centerLetter} and the pangram is ${primaryPangram}. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points."}},{"@type":"Question","name":"What is the Spelling Bee pangram for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The pangram for ${friendly} is ${primaryPangram}. It uses all 7 letters at least once and is worth ${primaryPangram.length + 7} points total."}},{"@type":"Question","name":"How many words in Spelling Bee ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. Maximum score is ${maxScore} points and Genius requires ${geniusScore} points. Center letter is ${centerLetter}."}},{"@type":"Question","name":"What is the Genius score for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The Genius threshold for ${friendly} is ${geniusScore} points, which is 70% of the maximum ${maxScore}. Queen Bee requires all ${totalWords} words for the full ${maxScore} points."}},{"@type":"Question","name":"What letters are in Spelling Bee ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The letters for ${friendly} are ${allLetters.join(', ')}. Center letter is ${centerLetter} which must appear in every valid word."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Spelling Bee ${friendly} Answers","datePublished":"${iso}","dateModified":"${iso}","author":{"@type":"Organization","name":"SpellingBeeFinder"},"publisher":{"@type":"Organization","name":"SpellingBeeFinder","url":"https://www.spellingbeefinder.com"},"description":"${metaDesc}"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the Spelling Bee answer for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. The center letter is ${centerLetter} and the pangram is ${primaryPangram}. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points."}},{"@type":"Question","name":"What is the Spelling Bee pangram for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The pangram for ${friendly} is ${primaryPangram}. It uses all 7 letters at least once and is worth ${primaryPangram.length + 7} points total."}},{"@type":"Question","name":"How many words in Spelling Bee ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. Maximum score is ${maxScore} points and Genius requires ${geniusScore} points. Center letter is ${centerLetter}."}},{"@type":"Question","name":"What is the Genius score for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The Genius threshold for ${friendly} is ${geniusScore} points, which is 70% of the maximum ${maxScore}. Queen Bee requires all ${totalWords} words for the full ${maxScore} points."}},{"@type":"Question","name":"What are the letters in Spelling Bee ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The letters for ${friendly} are ${allLetters.join(', ')}. Center letter is ${centerLetter} which must appear in every valid word."}}]}]}
 </script>
 <style>
 :root{--amber:#b45309;--bee:#f59e0b;--cream-border:#fde68a;--s900:#0f172a;--s800:#1e293b;--s700:#334155;--s600:#475569;--s500:#64748b;--s200:#e2e8f0;--s100:#f1f5f9;--s50:#f8fafc;--green:#059669;--wh:#ffffff;}
@@ -329,7 +364,7 @@ footer{background:#fff;color:var(--s700);border-top:2px solid #e2e8f0;padding:40
 <nav>
   <div class="nav-inner">
     <a href="/index.html" class="nav-brand">
-      <img src="/bee-icon-nav.webp" alt="SpellingBeeFinder" width="32" height="32" style="object-fit:contain;display:block;flex-shrink:0;" loading="eager">
+      <img src="bee-icon-nav.webp" alt="SpellingBeeFinder" width="32" height="32" style="object-fit:contain;display:block;flex-shrink:0;" loading="eager">
       <span class="nav-wordmark">Spelling<em>Bee</em>Finder</span>
     </a>
     <div class="nav-links" id="navLinks">
