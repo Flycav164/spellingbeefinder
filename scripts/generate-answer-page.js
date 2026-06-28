@@ -303,9 +303,15 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .wpts{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--s500);background:var(--s100);border-radius:4px;padding:1px 5px;}
 .wchip.pangram .wpts{color:var(--amber);background:rgba(245,158,11,.12);}
 .nav-dates{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:12px;}
-.nav-date-btn{flex:1;padding:11px 16px;background:var(--wh);border:1.5px solid var(--s200);border-radius:11px;text-decoration:none;font-size:14px;font-weight:600;color:var(--s700);text-align:center;}
+.nav-dates-bottom{display:flex;justify-content:space-between;align-items:center;margin:40px 0 16px;gap:12px;}
+.nav-date-btn{flex:1;padding:11px 16px;background:var(--wh);border:1.5px solid var(--s200);border-radius:11px;text-decoration:none;font-size:14px;font-weight:600;color:var(--s700);text-align:center;transition:all .15s;}
 .nav-date-btn:hover{border-color:var(--bee);color:var(--amber);}
 .nav-date-btn.today{background:var(--bee);border-color:var(--bee);color:#fff;}
+.mobile-nav-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:2px solid var(--cream-border);padding:10px 16px 14px;gap:8px;}
+.mobile-nav-bar a{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;transition:all .15s;}
+.mnb-prev,.mnb-next{background:var(--s100);color:var(--s700);border:1.5px solid var(--s200);}
+.mnb-archive{background:var(--bee);color:#fff;border:1.5px solid var(--bee);flex:1.4;}
+.mnb-prev:hover,.mnb-next:hover{border-color:var(--bee);color:var(--amber);background:#fef3c7;}
 .cta-card{background:linear-gradient(135deg,var(--bee),#d97706);border-radius:14px;padding:24px 28px;margin:32px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 .cta-card h3{font-family:'Bebas Neue',serif;font-size:24px;letter-spacing:1px;color:#fff;margin-bottom:4px;}
 .cta-card p{font-size:14px;color:rgba(255,255,255,.88);}
@@ -357,6 +363,8 @@ footer{background:#fff;color:var(--s700);border-top:2px solid #e2e8f0;padding:40
   .cta-card{flex-direction:column;}
   .share-strip{flex-wrap:wrap;}
   .word-grid{gap:6px;}
+  .mobile-nav-bar{display:flex;}
+  body{padding-bottom:72px;}
 }
 </style>
 </head>
@@ -450,6 +458,16 @@ footer{background:#fff;color:var(--s700);border-top:2px solid #e2e8f0;padding:40
     </div>
   </div>
 </div>
+<div class="nav-dates-bottom">
+  <a href="/answers/${prevSlug}.html" class="nav-date-btn">&larr; Previous Puzzle</a>
+  <a href="/answers.html" class="nav-date-btn today">&#9729; All Answers</a>
+</div>
+<div class="mobile-nav-bar">
+  <a href="/answers/${prevSlug}.html" class="mnb-prev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>Prev</a>
+  <a href="/answers.html" class="mnb-archive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>Archive</a>
+  <a href="#" class="mnb-next" id="next-puzzle-btn">Next<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg></a>
+</div>
+</div>
 <footer>
   <div class="foot-inner">
     <div class="foot-col">
@@ -468,6 +486,15 @@ footer{background:#fff;color:var(--s700);border-top:2px solid #e2e8f0;padding:40
 <script>
 function tFaq(btn){var a=btn.nextElementSibling,c=btn.querySelector('.faq-chev');var o=a.classList.contains('open');a.classList.toggle('open',!o);c.classList.toggle('open',!o);btn.setAttribute('aria-expanded',!o);}
 document.getElementById('navHam').addEventListener('click',function(){document.getElementById('navLinks').classList.toggle('open');});
+(function(){
+  var iso='${iso}';
+  var d=new Date(iso+'T12:00:00');
+  d.setDate(d.getDate()+1);
+  var mn=['january','february','march','april','may','june','july','august','september','october','november','december'];
+  var nextSlug='spelling-bee-'+mn[d.getMonth()]+'-'+String(d.getDate()).padStart(2,'0')+'-'+d.getFullYear();
+  var btn=document.getElementById('next-puzzle-btn');
+  if(btn){btn.href='/answers/'+nextSlug+'.html';}
+})();
 </script>
 </body>
 </html>`;
