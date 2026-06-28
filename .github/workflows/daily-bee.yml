@@ -41,11 +41,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update archive index
-        run: node scripts/update-archive.js
-        env:
-          TZ: America/New_York
-
       - name: Deploy answer pages to Hostinger
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -59,12 +54,6 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
-
-      - name: Deploy answers.html via curl FTP
-        run: |
-          curl -T answers.html ftp://${{ secrets.FTP_HOST }}/public_html/answers.html \
-            --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
-            --ftp-create-dirs
 
 
 
