@@ -1,60 +1,55 @@
 name: Daily Spelling Bee Answer Page
 
 on:
-  schedule:
-    - cron: '5 14 * * *'
-  workflow_dispatch:
+ schedule:
+   - cron: '5 14 * * *'
+ workflow_dispatch:
 
 jobs:
-  generate-and-deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
+ generate-and-deploy:
+   runs-on: ubuntu-latest
+   timeout-minutes: 10
+   permissions:
+     contents: write
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+   steps:
+     - name: Checkout repository
+       uses: actions/checkout@v4
+       with:
+         token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
+     - name: Setup Node.js
+       uses: actions/setup-node@v4
+       with:
+         node-version: '24'
 
-      - name: Install dependencies
-        run: npm install ftp-deploy
+     - name: Install dependencies
+       run: npm install ftp-deploy
 
-      - name: Generate today's answer page
-        run: node scripts/generate-answer-page.js
-        env:
-          TZ: America/New_York
+     - name: Generate today's answer page
+       run: node scripts/generate-answer-page.js
+       env:
+         TZ: America/New_York
 
-      - name: Commit generated files to repo
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add answers/
-          git diff --staged --quiet || git commit -m "Auto: add spelling bee answers $(date +'%Y-%m-%d')"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+     - name: Commit generated files to repo
+       run: |
+         git config user.name "github-actions[bot]"
+         git config user.email "github-actions[bot]@users.noreply.github.com"
+         git add answers/
+         git diff --staged --quiet || git commit -m "Auto: add spelling bee answers $(date +'%Y-%m-%d')"
+         git push
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy answer pages to Hostinger
-        run: |
-          sudo apt-get install -y lftp
-          lftp -c "
-            set ftp:ssl-allow no;
-            set net:timeout 30;
-            set net:max-retries 3;
-            set net:reconnect-interval-base 5;
-            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }};
-            mirror --reverse --delete --verbose ./answers/ /public_html/answers/;
-            bye
-          "
-
-
-
-
-
+     - name: Deploy answer pages to Hostinger
+       run: |
+         sudo apt-get install -y lftp
+         lftp -c "
+           set ftp:ssl-allow no;
+           set net:timeout 30;
+           set net:max-retries 3;
+           set net:reconnect-interval-base 5;
+           open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }};
+           mirror --reverse --verbose --newer-than=now-2days ./answers/ /public_html/answers/;
+           bye
+         "
