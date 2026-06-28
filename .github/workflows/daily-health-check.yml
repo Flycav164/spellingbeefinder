@@ -29,4 +29,15 @@ jobs:
           echo "HTTP status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "status=FAIL" >> $GITHUB_OUTPUT
-            echo "reason=JSON file not found (HTTP $HTTP_CODE). The daily workflow
+            echo "reason=JSON file not found (HTTP $HTTP_CODE). Daily workflow may have failed to deploy." >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          TOTAL_WORDS=$(jq -r '.totalWords // 0' /tmp/bee.json)
+          PANGRAM=$(jq -r '.pangram // "MISSING"' /tmp/bee.json)
+          echo "totalWords=$TOTAL_WORDS"
+          echo "pangram=$PANGRAM"
+          echo "total_words=$TOTAL_WORDS" >> $GITHUB_OUTPUT
+          echo "pangram=$PANGRAM" >> $GITHUB_OUTPUT
+          if [ "$TOTAL_WORDS" -lt 10 ] 2>/dev/null; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+            echo "reason=Word count is $TOTAL_WORDS (expected 15+).
