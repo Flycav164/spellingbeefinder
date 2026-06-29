@@ -41,15 +41,26 @@ jobs:
        env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-     - name: Deploy answer pages to Hostinger
+     - name: Setup SSH key
        run: |
-         sudo apt-get install -y lftp
-         lftp -c "
-           set ftp:ssl-allow no;
-           set net:timeout 30;
-           set net:max-retries 3;
-           set net:reconnect-interval-base 5;
-           open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }};
-           mirror --reverse --verbose --newer-than=now-2days ./answers/ /public_html/answers/;
-           bye
-         "
+         mkdir -p ~/.ssh
+         echo "${{ secrets.SSH_KEY }}" > ~/.ssh/spellingbee_deploy
+         chmod 600 ~/.ssh/spellingbee_deploy
+         ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+     - name: Deploy today's files via rsync
+       run: |
+         TODAY=$(TZ="America/New_York" date +'%B' | tr '[:upper:]' '[:lower:]')
+         DAY=$(TZ="America/New_York" date +'%d')
+         YEAR=$(TZ="America/New_York" date +'%Y')
+         SLUG="spelling-bee-${TODAY}-${DAY}-${YEAR}"
+         echo "Deploying: $SLUG"
+         rsync -avz \
+           -e "ssh -i ~/.ssh/spellingbee_deploy -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
+           answers/${SLUG}.html \
+           answers/${SLUG}.json \
+           ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/domains/spellingbeefinder.com/public_html/answers/
+
+     - name: Cleanup SSH key
+       if: always()
+       run: rm -f ~/.ssh/spellingbee_deploy
