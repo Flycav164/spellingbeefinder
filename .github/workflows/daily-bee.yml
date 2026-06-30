@@ -1,77 +1,103 @@
 name: Daily Spelling Bee Answer Page
 
 on:
- schedule:
-   - cron: '5 14 * * *'
- workflow_dispatch:
-   inputs:
-     target_date:
-       description: 'Date to generate (YYYY-MM-DD). Leave blank for today.'
-       required: false
-       type: string
+  schedule:
+    - cron: '5 14 * * *'
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: 'Date to generate (YYYY-MM-DD). Leave blank for today.'
+        required: false
+        type: string
 
 jobs:
- generate-and-deploy:
-   runs-on: ubuntu-latest
-   timeout-minutes: 10
-   permissions:
-     contents: write
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
 
-   steps:
-     - name: Checkout repository
-       uses: actions/checkout@v4
-       with:
-         token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-     - name: Setup Node.js
-       uses: actions/setup-node@v4
-       with:
-         node-version: '24'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
-     - name: Install dependencies
-       run: |
-         npm install ftp-deploy
-         sudo apt-get update -qq
-         sudo apt-get install -y sshpass
+      - name: Install dependencies
+        run: |
+          npm install ftp-deploy
+          sudo apt-get update -qq
+          sudo apt-get install -y sshpass
 
-     - name: Generate answer page
-       run: node scripts/generate-answer-page.js "${{ inputs.target_date }}"
-       env:
-         TZ: America/New_York
+      - name: Generate answer page (with workflow-level retry)
+        run: |
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+          until node scripts/generate-answer-page.js "${{ inputs.target_date }}"; do
+            if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]; then
+              echo "All $MAX_ATTEMPTS attempts failed. Failing job."
+              exit 1
+            fi
+            echo "Attempt $ATTEMPT failed. Retrying in 20s..."
+            ATTEMPT=$((ATTEMPT+1))
+            sleep 20
+          done
+        env:
+          TZ: America/New_York
 
-     - name: Commit generated files to repo
-       run: |
-         git config user.name "github-actions[bot]"
-         git config user.email "github-actions[bot]@users.noreply.github.com"
-         git add answers/
-         git diff --staged --quiet || git commit -m "Auto: add spelling bee answers ${{ inputs.target_date }}$(date +'%Y-%m-%d')"
-         git push
-       env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit generated files to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add answers/
+          git diff --staged --quiet || git commit -m "Auto: add spelling bee answers ${{ inputs.target_date }}$(date +'%Y-%m-%d')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-     - name: Compute slug for deploy
-       id: slug
-       run: |
-         if [ -n "${{ inputs.target_date }}" ]; then
-           TARGET="${{ inputs.target_date }}"
-           MONTH=$(date -d "$TARGET" +'%B' | tr '[:upper:]' '[:lower:]')
-           DAY=$(date -d "$TARGET" +'%d')
-           YEAR=$(date -d "$TARGET" +'%Y')
-         else
-           MONTH=$(TZ="America/New_York" date +'%B' | tr '[:upper:]' '[:lower:]')
-           DAY=$(TZ="America/New_York" date +'%d')
-           YEAR=$(TZ="America/New_York" date +'%Y')
-         fi
-         SLUG="spelling-bee-${MONTH}-${DAY}-${YEAR}"
-         echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
-         echo "Computed slug: $SLUG"
+      - name: Compute slug for deploy
+        id: slug
+        run: |
+          if [ -n "${{ inputs.target_date }}" ]; then
+            TARGET="${{ inputs.target_date }}"
+            MONTH=$(date -d "$TARGET" +'%B' | tr '[:upper:]' '[:lower:]')
+            DAY=$(date -d "$TARGET" +'%d')
+            YEAR=$(date -d "$TARGET" +'%Y')
+          else
+            MONTH=$(date +'%B' | tr '[:upper:]' '[:lower:]')
+            DAY=$(date +'%d')
+            YEAR=$(date +'%Y')
+          fi
+          SLUG="spelling-bee-${MONTH}-${DAY}-${YEAR}"
+          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+          echo "Computed slug: $SLUG"
+        env:
+          TZ: America/New_York
 
-     - name: Deploy generated files via rsync (password auth)
-       run: |
-         SLUG="${{ steps.slug.outputs.slug }}"
-         echo "Deploying: $SLUG"
-         sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
-           -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-           answers/${SLUG}.html \
-           answers/${SLUG}.json \
-           ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/domains/spellingbeefinder.com/public_html/answers/
+      - name: Verify generated files exist before deploy
+        run: |
+          SLUG="${{ steps.slug.outputs.slug }}"
+          if [ ! -f "answers/${SLUG}.html" ]; then
+            echo "ERROR: answers/${SLUG}.html does not exist after generation. Refusing to deploy."
+            exit 1
+          fi
+          if [ ! -f "answers/${SLUG}.json" ]; then
+            echo "ERROR: answers/${SLUG}.json does not exist after generation. Refusing to deploy."
+            exit 1
+          fi
+          echo "Verified: answers/${SLUG}.html and .json both present."
+
+      - name: Deploy generated files via rsync (password auth)
+        run: |
+          SLUG="${{ steps.slug.outputs.slug }}"
+          echo "Deploying: $SLUG"
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
+            answers/${SLUG}.html \
+            answers/${SLUG}.json \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/domains/spellingbeefinder.com/public_html/answers/
