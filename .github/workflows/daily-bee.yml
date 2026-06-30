@@ -4,6 +4,11 @@ on:
  schedule:
    - cron: '5 14 * * *'
  workflow_dispatch:
+   inputs:
+     target_date:
+       description: 'Date to generate (YYYY-MM-DD). Leave blank for today.'
+       required: false
+       type: string
 
 jobs:
  generate-and-deploy:
@@ -26,8 +31,8 @@ jobs:
      - name: Install dependencies
        run: npm install ftp-deploy
 
-     - name: Generate today's answer page
-       run: node scripts/generate-answer-page.js
+     - name: Generate answer page
+       run: node scripts/generate-answer-page.js "${{ inputs.target_date }}"
        env:
          TZ: America/New_York
 
@@ -36,7 +41,7 @@ jobs:
          git config user.name "github-actions[bot]"
          git config user.email "github-actions[bot]@users.noreply.github.com"
          git add answers/
-         git diff --staged --quiet || git commit -m "Auto: add spelling bee answers $(date +'%Y-%m-%d')"
+         git diff --staged --quiet || git commit -m "Auto: add spelling bee answers ${{ inputs.target_date }}$(date +'%Y-%m-%d')"
          git push
        env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,12 +53,26 @@ jobs:
          chmod 600 ~/.ssh/spellingbee_deploy
          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-     - name: Deploy today's files via rsync
+     - name: Compute slug for deploy
+       id: slug
        run: |
-         TODAY=$(TZ="America/New_York" date +'%B' | tr '[:upper:]' '[:lower:]')
-         DAY=$(TZ="America/New_York" date +'%d')
-         YEAR=$(TZ="America/New_York" date +'%Y')
-         SLUG="spelling-bee-${TODAY}-${DAY}-${YEAR}"
+         if [ -n "${{ inputs.target_date }}" ]; then
+           TARGET="${{ inputs.target_date }}"
+           MONTH=$(date -d "$TARGET" +'%B' | tr '[:upper:]' '[:lower:]')
+           DAY=$(date -d "$TARGET" +'%d')
+           YEAR=$(date -d "$TARGET" +'%Y')
+         else
+           MONTH=$(TZ="America/New_York" date +'%B' | tr '[:upper:]' '[:lower:]')
+           DAY=$(TZ="America/New_York" date +'%d')
+           YEAR=$(TZ="America/New_York" date +'%Y')
+         fi
+         SLUG="spelling-bee-${MONTH}-${DAY}-${YEAR}"
+         echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+         echo "Computed slug: $SLUG"
+
+     - name: Deploy generated files via rsync
+       run: |
+         SLUG="${{ steps.slug.outputs.slug }}"
          echo "Deploying: $SLUG"
          rsync -avz \
            -e "ssh -i ~/.ssh/spellingbee_deploy -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
