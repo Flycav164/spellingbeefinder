@@ -8,7 +8,17 @@ const fs = require('fs');
 const path = require('path');
 
 function getDateStrings() {
-  const now = new Date();
+  // Accept optional date override: node generate-answer-page.js 2026-06-13
+  // Falls back to today if no argument given.
+  const override = process.argv[2];
+  let now;
+  if (override && /^\d{4}-\d{2}-\d{2}$/.test(override)) {
+    const [y, m, d] = override.split('-').map(Number);
+    now = new Date(y, m - 1, d);
+    console.log(`Using date override: ${override}`);
+  } else {
+    now = new Date();
+  }
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
@@ -504,9 +514,13 @@ async function main() {
   console.log(`Generating page for: ${dates.friendly}`);
 
   const outputPath = path.join(__dirname, '..', 'answers', dates.filename);
-  if (fs.existsSync(outputPath)) {
-    console.log(`Page already exists: ${dates.filename} -- skipping`);
+  const isOverride = process.argv[2] && /^\d{4}-\d{2}-\d{2}$/.test(process.argv[2]);
+  if (fs.existsSync(outputPath) && !isOverride) {
+    console.log(`Page already exists: ${dates.filename} -- skipping (no date override given)`);
     process.exit(0);
+  }
+  if (fs.existsSync(outputPath) && isOverride) {
+    console.log(`Page exists but date override given -- regenerating: ${dates.filename}`);
   }
 
   let answers;
