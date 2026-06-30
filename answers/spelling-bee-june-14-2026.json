@@ -5,6 +5,11 @@
   "filename": "spelling-bee-june-14-2026.html",
   "centerLetter": "H",
   "pangram": "HEADPIN",
-  "totalWords": 20,
+  "pangrams": [
+    "HEADPIN",
+    "PINHEAD",
+    "PINHEADED"
+  ],
+  "totalWords": 26,
   "maxScore": 158
 }
