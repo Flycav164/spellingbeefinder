@@ -8,8 +8,6 @@ const fs = require('fs');
 const path = require('path');
 
 function getDateStrings() {
-  // Accept optional date override: node generate-answer-page.js 2026-06-13
-  // Falls back to today if no argument given.
   const override = process.argv[2];
   let now;
   if (override && /^\d{4}-\d{2}-\d{2}$/.test(override)) {
@@ -41,7 +39,6 @@ function wordPoints(word, allLetters) {
   return { pts: isPangram ? pts + 7 : pts, isPangram };
 }
 
-// Native https GET — handles redirects, no compression issues
 function fetchUrl(urlStr, timeoutMs) {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(urlStr);
@@ -61,7 +58,6 @@ function fetchUrl(urlStr, timeoutMs) {
     };
 
     const req = lib.request(options, (res) => {
-      // Follow redirects (up to 5)
       if ((res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) && res.headers.location) {
         const redirectUrl = res.headers.location.startsWith('http')
           ? res.headers.location
@@ -88,12 +84,6 @@ function fetchUrl(urlStr, timeoutMs) {
   });
 }
 
-// Derive the letter set, center letter, and pangram(s) ANALYTICALLY from the
-// clean word list, rather than pattern-matching presentation markup.
-// By the actual rules of Spelling Bee: every valid word is composed only of
-// letters from the puzzle's 7-letter set, and the center letter appears in
-// every valid word. This is deterministic and does not depend on nytbee's
-// HTML/CSS markup conventions.
 function deriveLetterSetAndCenter(words) {
   if (!words || words.length < 5) {
     return { ok: false, reason: `Too few words to derive letter set (${words ? words.length : 0})` };
@@ -125,7 +115,6 @@ function deriveLetterSetAndCenter(words) {
   return { ok: true, allLetters: unionArr, centerLetter, pangrams };
 }
 
-// Fetch from nytbee.com HTML page
 async function fetchFromNytBee(compact) {
   const url = `https://nytbee.com/Bee_${compact}.html`;
   console.log(`Fetching: ${url}`);
@@ -133,12 +122,6 @@ async function fetchFromNytBee(compact) {
 
   if (!html || html.length < 500) throw new Error('Response too short — likely blocked or empty');
 
-  // CRITICAL DATE-VALIDATION GUARD
-  // nytbee.com embeds the exact requested date in its puzzle board image
-  // filename (pics/YYYYMMDD.png). If a redirect, cache collision, or
-  // upstream quirk serves us a DIFFERENT date's page, this image filename
-  // will not match, and we must reject the response rather than silently
-  // writing the wrong date's content under this date's filename.
   const dateAnchor = new RegExp(`pics/${compact}\\.png`, 'i');
   if (!dateAnchor.test(html)) {
     throw new Error(`Date mismatch — fetched page does not contain expected board image pics/${compact}.png (likely served wrong date)`);
@@ -146,12 +129,6 @@ async function fetchFromNytBee(compact) {
 
   let words = [];
 
-  // SCOPE FIRST, EXTRACT SECOND.
-  // nytbee.com's page contains many <li> elements and word-like tokens
-  // OUTSIDE the actual answer list — site nav, "Other days with this
-  // pangram" links, the "Words not in official answer list" section, the
-  // first-letter frequency chart, etc. Every extraction method below must
-  // operate ONLY within the official-answers section, not the full page.
   let scopedHtml = html;
   const scopeStart = html.search(/official answers/i);
   if (scopeStart !== -1) {
@@ -163,15 +140,12 @@ async function fetchFromNytBee(compact) {
     console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
   }
 
-  // DEFINITIVE DIAGNOSTIC, v2: the prior per-anchor check used a separate,
-  // buggy slice/regex test that contradicted the real extraction (claimed
-  // 63/63 anchors failed, which is logically impossible since the real
-  // regex below successfully extracts 60). Ignoring that broken check.
-  // This version uses matchAll on the EXACT SAME pattern Method 1 uses for
-  // success, to find precisely which anchors it does NOT match, then
-  // dumps CHARACTER CODES (not text) for those — numbers cannot render
-  // invisibly, unlike text that may contain non-printing/zero-width
-  // characters nytbee's markup could be using.
+  // DEFINITIVE DIAGNOSTIC, v3: char-code dump on v2 proved the prior
+  // "TRUE unmatched anchor" cases have ONLY plain spaces (char code 32)
+  // in the 25 chars right before the anchor — no invisible/zero-width
+  // character issue at all. The real word for these 3 entries must sit
+  // further back than 25 chars. Widening to 200 chars and printing as
+  // readable text (now safe, since we've ruled out non-printing glyphs).
   const totalAnchorCount = (scopedHtml.match(/class="[^"]*\blink-definition\b[^"]*"/gi) || []).length;
   console.log(`DEBUG: total link-definition class attributes found: ${totalAnchorCount}`);
 
@@ -188,21 +162,14 @@ async function fetchFromNytBee(compact) {
     if (!isCovered) {
       trueFailCount++;
       if (trueFailCount <= 5) {
-        const before = scopedHtml.slice(Math.max(0, idx - 25), idx);
-        const codes = [...before].map(ch => ch.charCodeAt(0));
-        console.log(`DEBUG: TRUE unmatched anchor #${trueFailCount} — char codes of preceding 25 chars: ${JSON.stringify(codes)}`);
+        const before200 = scopedHtml.slice(Math.max(0, idx - 200), idx);
+        const readable = before200.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+        console.log(`DEBUG: TRUE unmatched anchor #${trueFailCount} — preceding 200 chars: ${JSON.stringify(readable)}`);
       }
     }
   }
   console.log(`DEBUG: true anchor count with no successful match: ${trueFailCount}`);
 
-  // Method 1: the answer word appears as plain text IMMEDIATELY BEFORE
-  // its link-definition anchor (the anchor itself wraps only an arrow
-  // glyph, e.g. "catch <a ... class=\"link-definition\">&#8599;</a>").
-  // NOTE: extracted 60 words consistently on 2026-06-15, but pangram
-  // validation has failed every time — investigating via char-code dump
-  // above which of the 3 missing anchors (63 total - 60 matched) is the
-  // pangram, and why its preceding text doesn't match.
   const beforeAnchorMatches = successfulMatches.map(m => m[0]);
   console.log(`DEBUG: raw beforeAnchorMatches count (before dedup): ${beforeAnchorMatches.length}`);
   if (beforeAnchorMatches.length >= 5) {
@@ -214,8 +181,6 @@ async function fetchFromNytBee(compact) {
     console.log(`Method 1 (word before link-definition anchor): ${words.length} words`);
   }
 
-  // Method 2: word INSIDE the link-definition anchor (in case nytbee's
-  // structure differs from what Method 1 assumes)
   if (words.length < 5) {
     const linkDefMatches = scopedHtml.match(/<a[^>]*class="[^"]*\blink-definition\b[^"]*"[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/gi);
     if (linkDefMatches && linkDefMatches.length >= 5) {
@@ -231,8 +196,6 @@ async function fetchFromNytBee(compact) {
     }
   }
 
-  // Method 3: plain text dash-list pattern (kept as fallback, in case
-  // nytbee's markup changes in the future)
   if (words.length < 5) {
     const dashMatches = scopedHtml.match(/^-\s+([a-z]+)\s*$/gim);
     if (dashMatches && dashMatches.length >= 5) {
@@ -245,7 +208,6 @@ async function fetchFromNytBee(compact) {
     }
   }
 
-  // Method 4: <li> tags, scoped to the official-answers section only
   if (words.length < 5) {
     const liMatches = scopedHtml.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
     if (liMatches && liMatches.length >= 5) {
@@ -258,9 +220,6 @@ async function fetchFromNytBee(compact) {
     }
   }
 
-  // Method 5: last-resort plain-word extraction from the same scoped
-  // block. True last resort only — picks up HTML/JS noise words if the
-  // above structural methods fail, so its results are least trustworthy.
   if (words.length < 5) {
     const found = scopedHtml.match(/\b([a-z]{4,})\b/g);
     if (found) {
@@ -271,19 +230,12 @@ async function fetchFromNytBee(compact) {
 
   if (words.length < 5) throw new Error(`Could not parse word list (found ${words.length})`);
 
-  // Derive letter set, center letter, and pangram(s) analytically.
-  // This doubles as contamination detection: if the word list has stray
-  // words from elsewhere on the page, the letter union won't be exactly 7
-  // and/or no common center letter will exist — both cause a clean throw
-  // here, which the retry wrapper will catch and retry on a fresh fetch.
   const derived = deriveLetterSetAndCenter(words);
   if (!derived.ok) {
     throw new Error(`Word list validation failed: ${derived.reason}`);
   }
   const { allLetters, centerLetter, pangrams } = derived;
 
-  // Every valid word must be composed ENTIRELY of letters from the 7-letter
-  // set (not just contain at least one of them).
   const letterSet = new Set(allLetters);
   const validWords = words.filter(w => [...w].every(ch => letterSet.has(ch)));
 
@@ -291,14 +243,11 @@ async function fetchFromNytBee(compact) {
     console.log(`Dropped ${words.length - validWords.length} word(s) containing letters outside the 7-letter set`);
   }
 
-  // Stats
   const maxMatch = html.match(/Maximum Puzzle Score:\s*(\d+)/i);
   const geniusMatch = html.match(/Points Needed for Genius:\s*(\d+)/i);
   const maxScore = maxMatch ? parseInt(maxMatch[1]) : 0;
   const geniusScore = geniusMatch ? parseInt(geniusMatch[1]) : Math.ceil(maxScore * 0.7);
 
-  // Real puzzles always score above 0 — a parsed 0 means the stats regex
-  // failed to match, not that the puzzle genuinely scores zero.
   if (maxScore === 0) {
     throw new Error('Parsed maxScore is 0 — stats regex likely failed to match, treating as parse failure');
   }
@@ -316,8 +265,6 @@ async function fetchFromNytBee(compact) {
   };
 }
 
-// Retry wrapper — 3 attempts with 10s/30s/60s backoff before giving up
-// on nytbee.com entirely.
 async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
   const delays = [10000, 30000, 60000];
   let lastErr;
@@ -339,7 +286,6 @@ async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
   throw lastErr;
 }
 
-// Fallback: spellingbee-answers.com
 async function fetchFallback(dates) {
   const url = `https://spellingbee-answers.com/`;
   console.log(`Trying fallback (today-only, same-day runs): ${url}`);
@@ -504,7 +450,7 @@ ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
 .sbn-li{background:#0a66c2;color:#fff;}
 .sbn-wa{background:#25d366;color:#fff;}
 .sbn-em{background:var(--s300,#cbd5e1);color:var(--s700);}
-footer{background:#fff;color:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 20px 28px;margin-top:56px;}
+footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 20px 28px;margin-top:56px;}
 .foot-inner{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;margin-bottom:24px;}
 .foot-col{display:flex;flex-direction:column;gap:8px;min-width:140px;}
 .foot-col h4{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
