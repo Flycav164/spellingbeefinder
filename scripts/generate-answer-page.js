@@ -163,16 +163,26 @@ async function fetchFromNytBee(compact) {
     console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
   }
 
+  // DEFINITIVE DIAGNOSTIC: the "extra class" hypothesis was tested and
+  // disproven (relaxed class match still found exactly 60 words, same as
+  // before). Instead of guessing again, count total link-definition
+  // anchors directly and list every distinct class value used, so we can
+  // see precisely what's actually different about whichever entry isn't
+  // being captured.
+  const totalAnchorCount = (scopedHtml.match(/class="[^"]*\blink-definition\b[^"]*"/gi) || []).length;
+  const uniqueClassValues = [...new Set(
+    [...scopedHtml.matchAll(/<a[^>]*\bclass="([^"]*)"/gi)].map(m => m[1])
+  )];
+  console.log(`DEBUG: total link-definition class attributes found: ${totalAnchorCount}`);
+  console.log(`DEBUG: unique <a> class values: ${JSON.stringify(uniqueClassValues)}`);
+
   // Method 1: the answer word appears as plain text IMMEDIATELY BEFORE
   // its link-definition anchor (the anchor itself wraps only an arrow
   // glyph, e.g. "catch <a ... class=\"link-definition\">&#8599;</a>").
-  // Confirmed working via diagnostic logging on 2026-06-15: this extracted
-  // 60 real words successfully. The class match must allow EXTRA classes
-  // alongside link-definition (not require an exact match) — the pangram
-  // entry specifically carries an additional class for its highlighting
-  // (e.g. class="link-definition pangram"), which an exact-match regex
-  // silently skips, causing "no word uses all 7 letters" validation
-  // failures even though the word list itself was otherwise correct.
+  // NOTE: extracted 60 words consistently on 2026-06-15, but pangram
+  // validation has failed every time — the "extra class on pangram"
+  // theory was tested and disproven, root cause still under investigation
+  // via the diagnostic above.
   const beforeAnchorMatches = scopedHtml.match(/\b([a-z]{4,})\b\s*(?=<a[^>]*class="[^"]*\blink-definition\b[^"]*")/gi);
   if (beforeAnchorMatches && beforeAnchorMatches.length >= 5) {
     words = [...new Set(
