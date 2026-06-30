@@ -1,6 +1,9 @@
 // generate-answer-page.js
 // Fetches Spelling Bee answers from nytbee.com HTML page
 // Runs daily at 5:05am UTC via GitHub Actions, or manually via workflow_dispatch with a date override
+// TEMPORARY DIAGNOSTIC VERSION — has extra console.log debug lines added
+// to investigate why word extraction is failing. No logic changes vs the
+// last version other than the added logging.
 
 const https = require('https');
 const http = require('http');
@@ -168,8 +171,20 @@ async function fetchFromNytBee(compact) {
     console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
   }
 
+  // ===== TEMPORARY DIAGNOSTIC LOGGING =====
+  // No extraction-logic changes in this run. Purely to SEE what the script
+  // actually receives, instead of guessing at boundary text again.
+  console.log('=== DEBUG: first 800 chars of scopedHtml ===');
+  console.log(JSON.stringify(scopedHtml.slice(0, 800)));
+  console.log('=== DEBUG: chars 800-1600 of scopedHtml ===');
+  console.log(JSON.stringify(scopedHtml.slice(800, 1600)));
+  console.log('=== DEBUG: last 400 chars of scopedHtml ===');
+  console.log(JSON.stringify(scopedHtml.slice(-400)));
+  // ===== END TEMPORARY DIAGNOSTIC LOGGING =====
+
   // Method 1: plain text dash-list pattern — nytbee renders "- word" lines
   const dashMatches = scopedHtml.match(/^-\s+([a-z]+)\s*$/gim);
+  console.log(`DEBUG: Method 1 raw match count (any size): ${dashMatches ? dashMatches.length : 0}`);
   if (dashMatches && dashMatches.length >= 5) {
     words = [...new Set(
       dashMatches
@@ -182,6 +197,7 @@ async function fetchFromNytBee(compact) {
   // Method 2: <li> tags, scoped to the official-answers section only
   if (words.length < 5) {
     const liMatches = scopedHtml.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
+    console.log(`DEBUG: Method 2 raw match count (any size): ${liMatches ? liMatches.length : 0}`);
     if (liMatches && liMatches.length >= 5) {
       words = [...new Set(
         liMatches
