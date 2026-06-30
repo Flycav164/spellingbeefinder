@@ -1,10 +1,13 @@
 {
-  "date": "2026-06-18",
-  "friendly": "June 18, 2026",
-  "slug": "spelling-bee-june-18-2026",
-  "filename": "spelling-bee-june-18-2026.html",
-  "centerLetter": "T",
-  "pangram": "DETOXIFIED",
-  "totalWords": 40,
-  "maxScore": 165
+  "date": "2026-06-19",
+  "friendly": "June 19, 2026",
+  "slug": "spelling-bee-june-19-2026",
+  "filename": "spelling-bee-june-19-2026.html",
+  "centerLetter": "A",
+  "pangram": "IMMEDIACY",
+  "pangrams": [
+    "IMMEDIACY"
+  ],
+  "totalWords": 57,
+  "maxScore": 254
 }
