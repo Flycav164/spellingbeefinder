@@ -163,27 +163,52 @@ async function fetchFromNytBee(compact) {
     console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
   }
 
-  // Method 1: nytbee.com renders each answer word as an individual link:
-  // <a href="javascript:void(0)" onclick="show_..." class="link-definition">word</a>
-  // Confirmed via diagnostic logging on 2026-06-15 — this is the actual
-  // structure of the real HTML, not the dash-list or <li> formats the
-  // fallback methods below were originally written for (those formats
-  // never existed in the real raw HTML; they were artifacts of a
-  // markdown-converted preview tool, not what the script actually fetches).
-  const linkDefMatches = scopedHtml.match(/<a[^>]*class="link-definition"[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/gi);
-  if (linkDefMatches && linkDefMatches.length >= 5) {
-    words = [...new Set(
-      linkDefMatches
-        .map(m => {
-          const inner = m.match(/>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/i);
-          return inner ? inner[1].toUpperCase() : '';
-        })
-        .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
-    )];
-    console.log(`Method 1 (link-definition anchors): ${words.length} words`);
+  // SURGICAL DIAGNOSTIC (always logs, costs nothing): pinpoint exactly
+  // what surrounds the first link-definition anchor, so if every
+  // extraction method below still fails, this single line tells us
+  // definitively what the real structure is — no more broad guessing.
+  const ldIndex = scopedHtml.search(/class="link-definition"/i);
+  if (ldIndex !== -1) {
+    console.log('=== DEBUG: 80 chars before/after first class="link-definition" ===');
+    console.log(JSON.stringify(scopedHtml.slice(Math.max(0, ldIndex - 80), ldIndex + 100)));
+  } else {
+    console.log('DEBUG: literal string class="link-definition" not found anywhere in scopedHtml');
   }
 
-  // Method 2: plain text dash-list pattern (kept as fallback, in case
+  // Method 1: the answer word appears as plain text IMMEDIATELY BEFORE
+  // its link-definition anchor (the anchor itself wraps only an arrow
+  // glyph, e.g. "catch <a ... class=\"link-definition\">&#8599;</a>").
+  // This matches the format observed in nytbee's markdown-rendered
+  // preview ("- acacia [up-arrow](javascript:void(0))") translated to
+  // raw HTML structure.
+  const beforeAnchorMatches = scopedHtml.match(/\b([a-z]{4,})\b\s*(?=<a[^>]*class="link-definition")/gi);
+  if (beforeAnchorMatches && beforeAnchorMatches.length >= 5) {
+    words = [...new Set(
+      beforeAnchorMatches
+        .map(m => m.trim().toUpperCase())
+        .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
+    )];
+    console.log(`Method 1 (word before link-definition anchor): ${words.length} words`);
+  }
+
+  // Method 2: word INSIDE the link-definition anchor (in case nytbee's
+  // structure differs from what Method 1 assumes)
+  if (words.length < 5) {
+    const linkDefMatches = scopedHtml.match(/<a[^>]*class="link-definition"[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/gi);
+    if (linkDefMatches && linkDefMatches.length >= 5) {
+      words = [...new Set(
+        linkDefMatches
+          .map(m => {
+            const inner = m.match(/>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/i);
+            return inner ? inner[1].toUpperCase() : '';
+          })
+          .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
+      )];
+      console.log(`Method 2 (link-definition anchors, word inside): ${words.length} words`);
+    }
+  }
+
+  // Method 3: plain text dash-list pattern (kept as fallback, in case
   // nytbee's markup changes in the future)
   if (words.length < 5) {
     const dashMatches = scopedHtml.match(/^-\s+([a-z]+)\s*$/gim);
@@ -193,11 +218,11 @@ async function fetchFromNytBee(compact) {
           .map(m => m.replace(/^-\s+/, '').trim().toUpperCase())
           .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
       )];
-      console.log(`Method 2 (dash-list, scoped): ${words.length} words`);
+      console.log(`Method 3 (dash-list, scoped): ${words.length} words`);
     }
   }
 
-  // Method 3: <li> tags, scoped to the official-answers section only
+  // Method 4: <li> tags, scoped to the official-answers section only
   if (words.length < 5) {
     const liMatches = scopedHtml.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
     if (liMatches && liMatches.length >= 5) {
@@ -206,18 +231,18 @@ async function fetchFromNytBee(compact) {
           .map(m => m.replace(/<[^>]+>/g, '').trim().toUpperCase())
           .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
       )];
-      console.log(`Method 3 (<li> tags, scoped): ${words.length} words`);
+      console.log(`Method 4 (<li> tags, scoped): ${words.length} words`);
     }
   }
 
-  // Method 4: last-resort plain-word extraction from the same scoped
+  // Method 5: last-resort plain-word extraction from the same scoped
   // block. True last resort only — picks up HTML/JS noise words if the
   // above structural methods fail, so its results are least trustworthy.
   if (words.length < 5) {
     const found = scopedHtml.match(/\b([a-z]{4,})\b/g);
     if (found) {
       words = [...new Set(found.map(w => w.toUpperCase()))];
-      console.log(`Method 4 (scoped plain-word scan): ${words.length} words`);
+      console.log(`Method 5 (scoped plain-word scan): ${words.length} words`);
     }
   }
 
@@ -235,7 +260,9 @@ async function fetchFromNytBee(compact) {
   const { allLetters, centerLetter, pangrams } = derived;
 
   // Every valid word must be composed ENTIRELY of letters from the 7-letter
-  // set (not just contain at least one of them).
+  // set (not just contain at least one of them — that filtered almost
+  // nothing previously, since most English words share at least one letter
+  // with any given 7-letter set).
   const letterSet = new Set(allLetters);
   const validWords = words.filter(w => [...w].every(ch => letterSet.has(ch)));
 
@@ -269,7 +296,9 @@ async function fetchFromNytBee(compact) {
 }
 
 // Retry wrapper — 3 attempts with 10s/30s/60s backoff before giving up
-// on nytbee.com entirely.
+// on nytbee.com entirely. Handles transient blocks/timeouts/blips AND
+// transient parse/validation failures without requiring a human to
+// manually re-trigger the workflow.
 async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
   const delays = [10000, 30000, 60000];
   let lastErr;
@@ -294,6 +323,10 @@ async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
 // Fallback: spellingbee-answers.com
 // IMPORTANT: this scrapes the homepage, which always shows TODAY's puzzle.
 // It is therefore only ever safe to use on genuine same-day cron runs.
+// main() enforces this by refusing to call this function when a date
+// override was given — using it on a backfill run would silently write
+// today's data under a past date's filename, recreating the exact
+// cross-date corruption this fix is meant to eliminate.
 async function fetchFallback(dates) {
   const url = `https://spellingbee-answers.com/`;
   console.log(`Trying fallback (today-only, same-day runs): ${url}`);
