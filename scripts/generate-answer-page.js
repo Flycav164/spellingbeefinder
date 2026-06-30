@@ -163,44 +163,49 @@ async function fetchFromNytBee(compact) {
     console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
   }
 
-  // DEFINITIVE DIAGNOSTIC: the "extra class" hypothesis was tested and
-  // disproven (relaxed class match still found exactly 60 words, same as
-  // before, and all 63 anchors share the identical single class value).
-  // Now checking each anchor individually against the actual match
-  // pattern, to see exactly which ones fail and why — no more inferring
-  // from aggregate counts.
+  // DEFINITIVE DIAGNOSTIC, v2: the prior per-anchor check used a separate,
+  // buggy slice/regex test that contradicted the real extraction (claimed
+  // 63/63 anchors failed, which is logically impossible since the real
+  // regex below successfully extracts 60). Ignoring that broken check.
+  // This version uses matchAll on the EXACT SAME pattern Method 1 uses for
+  // success, to find precisely which anchors it does NOT match, then
+  // dumps CHARACTER CODES (not text) for those — numbers cannot render
+  // invisibly, unlike text that may contain non-printing/zero-width
+  // characters nytbee's markup could be using.
   const totalAnchorCount = (scopedHtml.match(/class="[^"]*\blink-definition\b[^"]*"/gi) || []).length;
-  const uniqueClassValues = [...new Set(
-    [...scopedHtml.matchAll(/<a[^>]*\bclass="([^"]*)"/gi)].map(m => m[1])
-  )];
   console.log(`DEBUG: total link-definition class attributes found: ${totalAnchorCount}`);
-  console.log(`DEBUG: unique <a> class values: ${JSON.stringify(uniqueClassValues)}`);
 
-  const allAnchors = [...scopedHtml.matchAll(/<a[^>]*class="[^"]*\blink-definition\b[^"]*"[^>]*>/gi)];
-  console.log(`DEBUG: raw anchor occurrences via matchAll: ${allAnchors.length}`);
-  let unmatchedCount = 0;
-  for (const m of allAnchors) {
-    const idx = m.index;
-    const before = scopedHtml.slice(Math.max(0, idx - 30), idx);
-    if (!/[a-zA-Z]{4,}\s*$/.test(before)) {
-      unmatchedCount++;
-      if (unmatchedCount <= 6) {
-        console.log(`DEBUG: anchor with NO clean preceding word — preceding 30 chars: ${JSON.stringify(before)}`);
+  const successfulMatches = [...scopedHtml.matchAll(/\b([a-z]{4,})\b\s*(?=<a[^>]*class="[^"]*\blink-definition\b[^"]*")/gi)];
+  console.log(`DEBUG: successful word-before-anchor matches: ${successfulMatches.length}`);
+  const matchedEndPositions = new Set(successfulMatches.map(m => m.index + m[0].length));
+
+  const allAnchorTags = [...scopedHtml.matchAll(/<a[^>]*class="[^"]*\blink-definition\b[^"]*"[^>]*>/gi)];
+  console.log(`DEBUG: total anchor tags: ${allAnchorTags.length}`);
+  let trueFailCount = 0;
+  for (const tag of allAnchorTags) {
+    const idx = tag.index;
+    const isCovered = [...matchedEndPositions].some(endPos => endPos === idx);
+    if (!isCovered) {
+      trueFailCount++;
+      if (trueFailCount <= 5) {
+        const before = scopedHtml.slice(Math.max(0, idx - 25), idx);
+        const codes = [...before].map(ch => ch.charCodeAt(0));
+        console.log(`DEBUG: TRUE unmatched anchor #${trueFailCount} — char codes of preceding 25 chars: ${JSON.stringify(codes)}`);
       }
     }
   }
-  console.log(`DEBUG: total anchors with no clean preceding word: ${unmatchedCount}`);
+  console.log(`DEBUG: true anchor count with no successful match: ${trueFailCount}`);
 
   // Method 1: the answer word appears as plain text IMMEDIATELY BEFORE
   // its link-definition anchor (the anchor itself wraps only an arrow
   // glyph, e.g. "catch <a ... class=\"link-definition\">&#8599;</a>").
   // NOTE: extracted 60 words consistently on 2026-06-15, but pangram
-  // validation has failed every time — the "extra class on pangram"
-  // theory was tested and disproven, root cause still under investigation
-  // via the diagnostics above.
-  const beforeAnchorMatches = scopedHtml.match(/\b([a-z]{4,})\b\s*(?=<a[^>]*class="[^"]*\blink-definition\b[^"]*")/gi);
-  console.log(`DEBUG: raw beforeAnchorMatches count (before dedup): ${beforeAnchorMatches ? beforeAnchorMatches.length : 0}`);
-  if (beforeAnchorMatches && beforeAnchorMatches.length >= 5) {
+  // validation has failed every time — investigating via char-code dump
+  // above which of the 3 missing anchors (63 total - 60 matched) is the
+  // pangram, and why its preceding text doesn't match.
+  const beforeAnchorMatches = successfulMatches.map(m => m[0]);
+  console.log(`DEBUG: raw beforeAnchorMatches count (before dedup): ${beforeAnchorMatches.length}`);
+  if (beforeAnchorMatches.length >= 5) {
     words = [...new Set(
       beforeAnchorMatches
         .map(m => m.trim().toUpperCase())
@@ -312,9 +317,7 @@ async function fetchFromNytBee(compact) {
 }
 
 // Retry wrapper — 3 attempts with 10s/30s/60s backoff before giving up
-// on nytbee.com entirely. Handles transient blocks/timeouts/blips AND
-// transient parse/validation failures without requiring a human to
-// manually re-trigger the workflow.
+// on nytbee.com entirely.
 async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
   const delays = [10000, 30000, 60000];
   let lastErr;
@@ -337,12 +340,6 @@ async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
 }
 
 // Fallback: spellingbee-answers.com
-// IMPORTANT: this scrapes the homepage, which always shows TODAY's puzzle.
-// It is therefore only ever safe to use on genuine same-day cron runs.
-// main() enforces this by refusing to call this function when a date
-// override was given — using it on a backfill run would silently write
-// today's data under a past date's filename, recreating the exact
-// cross-date corruption this fix is meant to eliminate.
 async function fetchFallback(dates) {
   const url = `https://spellingbee-answers.com/`;
   console.log(`Trying fallback (today-only, same-day runs): ${url}`);
@@ -371,7 +368,6 @@ function generateHtml(dates, answers) {
   const primaryPangram = pangrams[0] || '';
   const extraPangrams = pangrams.slice(1);
 
-  // Group words by length
   const byLen = {};
   words.forEach(word => {
     const { pts, isPangram } = wordPoints(word, allLetters.length ? allLetters : []);
@@ -508,7 +504,7 @@ ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
 .sbn-li{background:#0a66c2;color:#fff;}
 .sbn-wa{background:#25d366;color:#fff;}
 .sbn-em{background:var(--s300,#cbd5e1);color:var(--s700);}
-footer{background:#fff;color:var(--s700);border-top:2px solid #e2e8f0;padding:40px 20px 28px;margin-top:56px;}
+footer{background:#fff;color:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 20px 28px;margin-top:56px;}
 .foot-inner{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;margin-bottom:24px;}
 .foot-col{display:flex;flex-direction:column;gap:8px;min-width:140px;}
 .foot-col h4{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
