@@ -148,43 +148,58 @@ async function fetchFromNytBee(compact) {
 
   let words = [];
 
+  // SCOPE FIRST, EXTRACT SECOND.
+  // nytbee.com's page contains many <li> elements and word-like tokens
+  // OUTSIDE the actual answer list — site nav, "Other days with this
+  // pangram" links, the "Words not in official answer list" section, the
+  // first-letter frequency chart, etc. Every extraction method below must
+  // operate ONLY within the official-answers section, not the full page,
+  // or it will silently pull in contamination (this is what caused the
+  // June 15 word-list validation failures — Method 2 was matching <li>
+  // tags from elsewhere on the page, not just the answer list).
+  let scopedHtml = html;
+  const scopeStart = html.search(/official answers/i);
+  if (scopeStart !== -1) {
+    const afterStart = html.slice(scopeStart);
+    const scopeEndMatch = afterStart.search(/Words not in official|not in today's official answers|valid dictionary words|Number of Pangrams/i);
+    scopedHtml = scopeEndMatch !== -1 ? afterStart.slice(0, scopeEndMatch) : afterStart;
+    console.log(`Scoped to official-answers section: ${scopedHtml.length} chars (full page: ${html.length} chars)`);
+  } else {
+    console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
+  }
+
   // Method 1: plain text dash-list pattern — nytbee renders "- word" lines
-  const dashMatches = html.match(/^-\s+([a-z]+)\s*$/gim);
+  const dashMatches = scopedHtml.match(/^-\s+([a-z]+)\s*$/gim);
   if (dashMatches && dashMatches.length >= 5) {
     words = [...new Set(
       dashMatches
         .map(m => m.replace(/^-\s+/, '').trim().toUpperCase())
         .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
     )];
-    console.log(`Method 1 (dash-list): ${words.length} words`);
+    console.log(`Method 1 (dash-list, scoped): ${words.length} words`);
   }
 
-  // Method 2: <li> tags
+  // Method 2: <li> tags, scoped to the official-answers section only
   if (words.length < 5) {
-    const liMatches = html.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
+    const liMatches = scopedHtml.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
     if (liMatches && liMatches.length >= 5) {
       words = [...new Set(
         liMatches
           .map(m => m.replace(/<[^>]+>/g, '').trim().toUpperCase())
           .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
       )];
-      console.log(`Method 2 (<li> tags): ${words.length} words`);
+      console.log(`Method 2 (<li> tags, scoped): ${words.length} words`);
     }
   }
 
-  // Method 3: last-resort regex block extraction. Kept as a final fallback
-  // only — this method operates on prose-boundary patterns that are
-  // unreliable against raw HTML and prone to bleeding into adjacent
-  // sections (e.g. "not in official answers" word lists).
+  // Method 3: last-resort plain-word extraction from the same scoped
+  // block. Kept as a final fallback only — scoping already removes most
+  // of the risk this method historically carried.
   if (words.length < 5) {
-    const blockMatch = html.match(/official answers[^]*?(?=Words not in official|not in today's official answers|valid dictionary words|\n\n|\r\n\r\n|<\/)/i);
-    if (blockMatch) {
-      const block = blockMatch[0];
-      const found = block.match(/\b([a-z]{4,})\b/g);
-      if (found) {
-        words = [...new Set(found.map(w => w.toUpperCase()))];
-        console.log(`Method 3 (answers block): ${words.length} words`);
-      }
+    const found = scopedHtml.match(/\b([a-z]{4,})\b/g);
+    if (found) {
+      words = [...new Set(found.map(w => w.toUpperCase()))];
+      console.log(`Method 3 (scoped plain-word scan): ${words.length} words`);
     }
   }
 
