@@ -163,25 +163,17 @@ async function fetchFromNytBee(compact) {
     console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
   }
 
-  // SURGICAL DIAGNOSTIC (always logs, costs nothing): pinpoint exactly
-  // what surrounds the first link-definition anchor, so if every
-  // extraction method below still fails, this single line tells us
-  // definitively what the real structure is — no more broad guessing.
-  const ldIndex = scopedHtml.search(/class="link-definition"/i);
-  if (ldIndex !== -1) {
-    console.log('=== DEBUG: 80 chars before/after first class="link-definition" ===');
-    console.log(JSON.stringify(scopedHtml.slice(Math.max(0, ldIndex - 80), ldIndex + 100)));
-  } else {
-    console.log('DEBUG: literal string class="link-definition" not found anywhere in scopedHtml');
-  }
-
   // Method 1: the answer word appears as plain text IMMEDIATELY BEFORE
   // its link-definition anchor (the anchor itself wraps only an arrow
   // glyph, e.g. "catch <a ... class=\"link-definition\">&#8599;</a>").
-  // This matches the format observed in nytbee's markdown-rendered
-  // preview ("- acacia [up-arrow](javascript:void(0))") translated to
-  // raw HTML structure.
-  const beforeAnchorMatches = scopedHtml.match(/\b([a-z]{4,})\b\s*(?=<a[^>]*class="link-definition")/gi);
+  // Confirmed working via diagnostic logging on 2026-06-15: this extracted
+  // 60 real words successfully. The class match must allow EXTRA classes
+  // alongside link-definition (not require an exact match) — the pangram
+  // entry specifically carries an additional class for its highlighting
+  // (e.g. class="link-definition pangram"), which an exact-match regex
+  // silently skips, causing "no word uses all 7 letters" validation
+  // failures even though the word list itself was otherwise correct.
+  const beforeAnchorMatches = scopedHtml.match(/\b([a-z]{4,})\b\s*(?=<a[^>]*class="[^"]*\blink-definition\b[^"]*")/gi);
   if (beforeAnchorMatches && beforeAnchorMatches.length >= 5) {
     words = [...new Set(
       beforeAnchorMatches
@@ -194,7 +186,7 @@ async function fetchFromNytBee(compact) {
   // Method 2: word INSIDE the link-definition anchor (in case nytbee's
   // structure differs from what Method 1 assumes)
   if (words.length < 5) {
-    const linkDefMatches = scopedHtml.match(/<a[^>]*class="link-definition"[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/gi);
+    const linkDefMatches = scopedHtml.match(/<a[^>]*class="[^"]*\blink-definition\b[^"]*"[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/gi);
     if (linkDefMatches && linkDefMatches.length >= 5) {
       words = [...new Set(
         linkDefMatches
@@ -260,9 +252,7 @@ async function fetchFromNytBee(compact) {
   const { allLetters, centerLetter, pangrams } = derived;
 
   // Every valid word must be composed ENTIRELY of letters from the 7-letter
-  // set (not just contain at least one of them — that filtered almost
-  // nothing previously, since most English words share at least one letter
-  // with any given 7-letter set).
+  // set (not just contain at least one of them).
   const letterSet = new Set(allLetters);
   const validWords = words.filter(w => [...w].every(ch => letterSet.has(ch)));
 
