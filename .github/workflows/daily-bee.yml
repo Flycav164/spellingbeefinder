@@ -17,7 +17,7 @@ concurrency:
 jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     permissions:
       contents: write
 
@@ -96,12 +96,26 @@ jobs:
           fi
           echo "Verified: answers/${SLUG}.html and .json both present."
 
-      - name: Deploy generated files via rsync (password auth)
+      - name: Deploy generated files via rsync (password auth, single 1-hour-spaced retry)
         run: |
           SLUG="${{ steps.slug.outputs.slug }}"
-          echo "Deploying: $SLUG"
+          echo "Deploying: $SLUG (attempt 1/2)"
+          if sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
+            answers/${SLUG}.html \
+            answers/${SLUG}.json \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/domains/spellingbeefinder.com/public_html/answers/; then
+            echo "Deploy succeeded on first attempt."
+            exit 0
+          fi
+
+          echo "First deploy attempt failed (likely a transient SSH timeout)."
+          echo "Waiting 1 hour before a single retry, to avoid hammering Hostinger's SSH service."
+          sleep 3600
+
+          echo "Deploying: $SLUG (attempt 2/2, after 1h wait)"
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
             answers/${SLUG}.html \
             answers/${SLUG}.json \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/domains/spellingbeefinder.com/public_html/answers/
