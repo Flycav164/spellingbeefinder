@@ -439,7 +439,6 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .wpts{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--s500);background:var(--s100);border-radius:4px;padding:1px 5px;}
 .wchip.pangram .wpts{color:var(--amber);background:rgba(245,158,11,.12);}
 .nav-dates{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:12px;}
-.nav-dates-bottom{display:flex;justify-content:space-between;align-items:center;margin:40px 0 16px;gap:12px;}
 .nav-date-btn{flex:1;padding:11px 16px;background:var(--wh);border:1.5px solid var(--s200);border-radius:11px;text-decoration:none;font-size:14px;font-weight:600;color:var(--s700);text-align:center;transition:all .15s;}
 .nav-date-btn:hover{border-color:var(--bee);color:var(--amber);}
 .nav-date-btn.today{background:var(--bee);border-color:var(--bee);color:#fff;}
@@ -591,15 +590,10 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
     </div>
   </div>
 </div>
-<div class="nav-dates-bottom">
-  <a href="/answers/${prevSlug}.html" class="nav-date-btn">&larr; Previous Puzzle</a>
-  <a href="/answers.html" class="nav-date-btn today">&#9729; All Answers</a>
-</div>
 <div class="mobile-nav-bar">
   <a href="/answers/${prevSlug}.html" class="mnb-prev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>Prev</a>
   <a href="/answers.html" class="mnb-archive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>Archive</a>
   <a href="#" class="mnb-next" id="next-puzzle-btn">Next<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg></a>
-</div>
 </div>
 <footer>
   <div class="foot-inner">
