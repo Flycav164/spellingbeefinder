@@ -8,6 +8,8 @@ const fs = require('fs');
 const path = require('path');
 
 function getDateStrings() {
+  // Accept optional date override: node generate-answer-page.js 2026-06-13
+  // Falls back to today if no argument given.
   const override = process.argv[2];
   let now;
   if (override && /^\d{4}-\d{2}-\d{2}$/.test(override)) {
@@ -39,6 +41,7 @@ function wordPoints(word, allLetters) {
   return { pts: isPangram ? pts + 7 : pts, isPangram };
 }
 
+// Native https GET — handles redirects, no compression issues
 function fetchUrl(urlStr, timeoutMs) {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(urlStr);
@@ -58,6 +61,7 @@ function fetchUrl(urlStr, timeoutMs) {
     };
 
     const req = lib.request(options, (res) => {
+      // Follow redirects (up to 5)
       if ((res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) && res.headers.location) {
         const redirectUrl = res.headers.location.startsWith('http')
           ? res.headers.location
@@ -84,6 +88,8 @@ function fetchUrl(urlStr, timeoutMs) {
   });
 }
 
+// Derive the letter set, center letter, and pangram(s) ANALYTICALLY from the
+// clean word list, rather than pattern-matching presentation markup.
 function deriveLetterSetAndCenter(words) {
   if (!words || words.length < 5) {
     return { ok: false, reason: `Too few words to derive letter set (${words ? words.length : 0})` };
@@ -115,6 +121,7 @@ function deriveLetterSetAndCenter(words) {
   return { ok: true, allLetters: unionArr, centerLetter, pangrams };
 }
 
+// Fetch from nytbee.com HTML page
 async function fetchFromNytBee(compact) {
   const url = `https://nytbee.com/Bee_${compact}.html`;
   console.log(`Fetching: ${url}`);
@@ -122,6 +129,7 @@ async function fetchFromNytBee(compact) {
 
   if (!html || html.length < 500) throw new Error('Response too short — likely blocked or empty');
 
+  // CRITICAL DATE-VALIDATION GUARD
   const dateAnchor = new RegExp(`pics/${compact}\\.png`, 'i');
   if (!dateAnchor.test(html)) {
     throw new Error(`Date mismatch — fetched page does not contain expected board image pics/${compact}.png (likely served wrong date)`);
@@ -129,6 +137,7 @@ async function fetchFromNytBee(compact) {
 
   let words = [];
 
+  // SCOPE FIRST, EXTRACT SECOND.
   let scopedHtml = html;
   const scopeStart = html.search(/official answers/i);
   if (scopeStart !== -1) {
@@ -140,47 +149,56 @@ async function fetchFromNytBee(compact) {
     console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
   }
 
-  // DEFINITIVE DIAGNOSTIC, v3: char-code dump on v2 proved the prior
-  // "TRUE unmatched anchor" cases have ONLY plain spaces (char code 32)
-  // in the 25 chars right before the anchor — no invisible/zero-width
-  // character issue at all. The real word for these 3 entries must sit
-  // further back than 25 chars. Widening to 200 chars and printing as
-  // readable text (now safe, since we've ruled out non-printing glyphs).
+  // ROOT CAUSE FOUND, CONFIRMED via live char-code/text diagnostics:
+  // nytbee.com renders PANGRAMS in a visually distinct block — wrapped in
+  // <mark><strong>WORD</strong></mark> inside a <div class="flex-list-item">
+  // — completely separate from the plain-text-before-anchor format every
+  // other answer uses. Method 1 only ever looked for the plain-text
+  // format, so pangram word(s) were silently dropped every time. This
+  // explains the exact 63-anchor vs 60-word gap (3 pangrams on
+  // 2026-06-15: APATHETIC, HEPATIC, PATHETIC — all sharing the same
+  // 7-letter set A/P/T/H/E/I/C, confirmed via live diagnostic output).
+  const pangramMatches = [...scopedHtml.matchAll(/<mark>\s*<strong>\s*([a-z]+)\s*<\/strong>\s*<\/mark>/gi)];
+  console.log(`DEBUG: mark/strong pangram-block matches: ${pangramMatches.length}`);
+  const pangramWords = pangramMatches
+    .map(m => m[1].toUpperCase())
+    .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w));
+  if (pangramWords.length) {
+    console.log(`DEBUG: pangram-block words found: ${pangramWords.join(', ')}`);
+  }
+
+  // DEFINITIVE DIAGNOSTIC, v3 (kept for future regressions): char-code
+  // dump on v2 proved the unmatched anchors had ONLY plain spaces before
+  // them — no invisible-character issue. Widened-window text dump then
+  // revealed the real mark/strong pangram structure above.
   const totalAnchorCount = (scopedHtml.match(/class="[^"]*\blink-definition\b[^"]*"/gi) || []).length;
   console.log(`DEBUG: total link-definition class attributes found: ${totalAnchorCount}`);
 
   const successfulMatches = [...scopedHtml.matchAll(/\b([a-z]{4,})\b\s*(?=<a[^>]*class="[^"]*\blink-definition\b[^"]*")/gi)];
   console.log(`DEBUG: successful word-before-anchor matches: ${successfulMatches.length}`);
-  const matchedEndPositions = new Set(successfulMatches.map(m => m.index + m[0].length));
 
   const allAnchorTags = [...scopedHtml.matchAll(/<a[^>]*class="[^"]*\blink-definition\b[^"]*"[^>]*>/gi)];
   console.log(`DEBUG: total anchor tags: ${allAnchorTags.length}`);
-  let trueFailCount = 0;
-  for (const tag of allAnchorTags) {
-    const idx = tag.index;
-    const isCovered = [...matchedEndPositions].some(endPos => endPos === idx);
-    if (!isCovered) {
-      trueFailCount++;
-      if (trueFailCount <= 5) {
-        const before200 = scopedHtml.slice(Math.max(0, idx - 200), idx);
-        const readable = before200.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
-        console.log(`DEBUG: TRUE unmatched anchor #${trueFailCount} — preceding 200 chars: ${JSON.stringify(readable)}`);
-      }
-    }
-  }
-  console.log(`DEBUG: true anchor count with no successful match: ${trueFailCount}`);
+  console.log(`DEBUG: plain-text matches (${successfulMatches.length}) + pangram-block matches (${pangramMatches.length}) = ${successfulMatches.length + pangramMatches.length} (should equal total anchor tags: ${allAnchorTags.length})`);
 
+  // Method 1: the answer word appears as plain text IMMEDIATELY BEFORE
+  // its link-definition anchor for all non-pangram words. Pangram words
+  // use the separate mark/strong block format extracted above
+  // (pangramWords) and are merged in here.
   const beforeAnchorMatches = successfulMatches.map(m => m[0]);
   console.log(`DEBUG: raw beforeAnchorMatches count (before dedup): ${beforeAnchorMatches.length}`);
   if (beforeAnchorMatches.length >= 5) {
-    words = [...new Set(
-      beforeAnchorMatches
+    words = [...new Set([
+      ...beforeAnchorMatches
         .map(m => m.trim().toUpperCase())
-        .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
-    )];
-    console.log(`Method 1 (word before link-definition anchor): ${words.length} words`);
+        .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w)),
+      ...pangramWords
+    ])];
+    console.log(`Method 1 (word before link-definition anchor, plain + pangram-block): ${words.length} words`);
   }
 
+  // Method 2: word INSIDE the link-definition anchor (in case nytbee's
+  // structure differs from what Method 1 assumes)
   if (words.length < 5) {
     const linkDefMatches = scopedHtml.match(/<a[^>]*class="[^"]*\blink-definition\b[^"]*"[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/gi);
     if (linkDefMatches && linkDefMatches.length >= 5) {
@@ -196,6 +214,7 @@ async function fetchFromNytBee(compact) {
     }
   }
 
+  // Method 3: plain text dash-list pattern (kept as fallback)
   if (words.length < 5) {
     const dashMatches = scopedHtml.match(/^-\s+([a-z]+)\s*$/gim);
     if (dashMatches && dashMatches.length >= 5) {
@@ -208,6 +227,7 @@ async function fetchFromNytBee(compact) {
     }
   }
 
+  // Method 4: <li> tags, scoped to the official-answers section only
   if (words.length < 5) {
     const liMatches = scopedHtml.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
     if (liMatches && liMatches.length >= 5) {
@@ -220,6 +240,7 @@ async function fetchFromNytBee(compact) {
     }
   }
 
+  // Method 5: last-resort plain-word extraction
   if (words.length < 5) {
     const found = scopedHtml.match(/\b([a-z]{4,})\b/g);
     if (found) {
@@ -243,6 +264,7 @@ async function fetchFromNytBee(compact) {
     console.log(`Dropped ${words.length - validWords.length} word(s) containing letters outside the 7-letter set`);
   }
 
+  // Stats
   const maxMatch = html.match(/Maximum Puzzle Score:\s*(\d+)/i);
   const geniusMatch = html.match(/Points Needed for Genius:\s*(\d+)/i);
   const maxScore = maxMatch ? parseInt(maxMatch[1]) : 0;
@@ -265,6 +287,7 @@ async function fetchFromNytBee(compact) {
   };
 }
 
+// Retry wrapper — 3 attempts with 10s/30s/60s backoff
 async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
   const delays = [10000, 30000, 60000];
   let lastErr;
@@ -286,6 +309,7 @@ async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
   throw lastErr;
 }
 
+// Fallback: spellingbee-answers.com (today-only)
 async function fetchFallback(dates) {
   const url = `https://spellingbee-answers.com/`;
   console.log(`Trying fallback (today-only, same-day runs): ${url}`);
