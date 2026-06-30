@@ -430,14 +430,14 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .pangram-word{font-family:'Bebas Neue',serif;font-size:clamp(24px,4vw,36px);color:var(--s900);letter-spacing:2px;}
 .pangram-info{font-size:13px;color:var(--s600);margin-top:4px;}
 .section-title{font-family:'Bebas Neue',serif;font-size:clamp(20px,3vw,26px);letter-spacing:1.5px;color:var(--s900);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cream-border);}
-.word-sections{margin-bottom:36px;}
+.word-sections{margin-bottom:36px;max-height:420px;overflow-y:auto;padding:0 4px 32px;scrollbar-width:thin;scrollbar-color:var(--cream-border) transparent;position:relative;}.word-sections::-webkit-scrollbar{width:4px;}.word-sections::-webkit-scrollbar-track{background:transparent;}.word-sections::-webkit-scrollbar-thumb{background:var(--cream-border);border-radius:4px;}
 .length-group{margin-bottom:20px;}
 .length-label{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--s500);text-transform:uppercase;background:var(--s100);padding:3px 10px;border-radius:6px;display:inline-block;margin-bottom:10px;}
 .word-grid{display:flex;flex-wrap:wrap;gap:8px;}
 .wchip{padding:7px 13px;border:1px solid var(--s200);border-radius:9px;background:var(--wh);font-size:13px;font-weight:600;color:var(--s700);display:flex;align-items:center;gap:6px;}
 .wchip.pangram{background:#fef3c7;border-color:var(--bee);color:var(--amber);}
 .wpts{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--s500);background:var(--s100);border-radius:4px;padding:1px 5px;}
-.wchip.pangram .wpts{color:var(--amber);background:rgba(245,158,11,.12);}
+.wchip.pangram .wpts{color:var(--amber);background:rgba(245,158,11,.12);}.word-fade-overlay{height:32px;margin-top:-32px;margin-bottom:12px;background:linear-gradient(to top,#f1f5f9 20%,transparent);pointer-events:none;position:relative;z-index:1;}
 .nav-dates{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:12px;}
 .nav-date-btn{flex:1;padding:11px 16px;background:var(--wh);border:1.5px solid var(--s200);border-radius:11px;text-decoration:none;font-size:14px;font-weight:600;color:var(--s700);text-align:center;transition:all .15s;}
 .nav-date-btn:hover{border-color:var(--bee);color:var(--amber);}
@@ -476,12 +476,12 @@ ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
 footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 20px 28px;margin-top:56px;}
 .foot-inner{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;margin-bottom:24px;}
 .foot-col{display:flex;flex-direction:column;gap:8px;min-width:140px;}
-.foot-col h4{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
-.foot-col a{font-size:14px;color:#475569;text-decoration:none;line-height:1.9;}
+.foot-col h4{font-size:13px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
+.foot-col a{font-size:15px;color:#334155;text-decoration:none;line-height:1.9;}
 .foot-col a:hover{color:#0f172a;}
-.foot-col p{font-size:14px;color:#64748b;line-height:1.6;margin:0;}
-.foot-bottom{max-width:1100px;margin:0 auto;padding:16px 0 0;border-top:1px solid #e2e8f0;font-size:13px;color:#64748b;line-height:1.6;}
-.foot-brand-name{font-family:'Bebas Neue',serif;font-size:19px;letter-spacing:2px;color:#0f172a;}
+.foot-col p{font-size:14px;color:#475569;line-height:1.6;margin:0;}
+.foot-bottom{max-width:1100px;margin:0 auto;padding:16px 0 0;border-top:1px solid #e2e8f0;font-size:14px;color:#475569;line-height:1.6;}
+.foot-brand-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}.foot-brand-name{font-family:'Bebas Neue',serif;font-size:19px;letter-spacing:2px;color:#0f172a;}
 .foot-brand-name em{color:var(--amber);font-style:normal;}
 @media(max-width:768px){
   body{background:#f1f5f9;}
@@ -556,6 +556,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   </div>
   <div class="section-title">All ${totalWords} Words &mdash; Sorted by Length</div>
   <div class="word-sections">${wordSections}</div>
+  <div class="word-fade-overlay"></div>
   <div class="cta-card">
     <div><h3>Want to Find Words You Missed?</h3><p>Load today&rsquo;s letters into our free solver and search without spoilers.</p></div>
     <a href="/index.html" class="cta-btn">Open Solver &rarr;</a>
@@ -624,6 +625,114 @@ document.getElementById('navHam').addEventListener('click',function(){document.g
   var nextSlug='spelling-bee-'+mn[d.getMonth()]+'-'+String(d.getDate()).padStart(2,'0')+'-'+d.getFullYear();
   var btn=document.getElementById('next-puzzle-btn');
   if(btn){btn.href='/answers/'+nextSlug+'.html';}
+})();
+</script>
+<style>
+.sbf-a11y-trigger{position:fixed;bottom:24px;right:24px;z-index:99999;width:56px;height:56px;border-radius:50%;background:#f59e0b;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(245,158,11,.45);touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.sbf-a11y-trigger:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(245,158,11,.6);}
+.sbf-a11y-trigger svg{width:30px;height:30px;fill:#fff;}
+.sbf-a11y-panel{position:fixed;bottom:88px;right:24px;z-index:99998;width:296px;background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);border:1px solid #e2e8f0;transform:scale(.95) translateY(10px);opacity:0;pointer-events:none;transition:all .2s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
+.sbf-a11y-panel.sbf-open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+.sbf-a11y-head{background:linear-gradient(135deg,#92400e,#b45309);padding:15px 18px;display:flex;align-items:center;justify-content:space-between;}
+.sbf-a11y-head-title{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#fff;letter-spacing:.3px;}
+.sbf-a11y-close{background:rgba(255,255,255,.2);border:none;cursor:pointer;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;line-height:1;transition:background .15s;}
+.sbf-a11y-close:hover{background:rgba(255,255,255,.35);}
+.sbf-a11y-body{padding:14px;}
+.sbf-a11y-size-row{display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:10px 14px;margin-bottom:12px;}
+.sbf-a11y-size-lbl{font-size:13px;font-weight:600;color:#334155;}
+.sbf-a11y-size-ctrl{display:flex;align-items:center;gap:8px;}
+.sbf-a11y-sz-btn{width:28px;height:28px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;font-size:16px;font-weight:700;color:#334155;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.sbf-a11y-sz-btn:hover{background:#f59e0b;color:#fff;border-color:#f59e0b;}
+.sbf-a11y-sz-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:#b45309;min-width:32px;text-align:center;}
+.sbf-a11y-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.sbf-a11y-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 8px;border-radius:12px;border:1.5px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#334155;transition:all .15s;}
+.sbf-a11y-btn svg{width:20px;height:20px;fill:#64748b;transition:fill .15s;}
+.sbf-a11y-btn:hover{border-color:#f59e0b;background:#fffbeb;color:#b45309;}
+.sbf-a11y-btn:hover svg{fill:#b45309;}
+.sbf-a11y-btn.sbf-on{background:#f59e0b;border-color:#d97706;color:#fff;}
+.sbf-a11y-btn.sbf-on svg{fill:#fff;}
+.sbf-a11y-reset{width:100%;padding:10px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#64748b;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.sbf-a11y-reset:hover{background:#fef3c7;color:#92400e;border-color:#fde68a;}
+.sbf-a11y-foot{text-align:center;padding:8px 16px 12px;font-size:13px;color:#94a3b8;font-family:'DM Mono',monospace;letter-spacing:.5px;}
+body.sbf-contrast{filter:contrast(150%) brightness(1.05);}body.sbf-contrast .sbf-a11y-trigger,body.sbf-contrast .sbf-a11y-panel{filter:none;}
+body.sbf-mono{filter:grayscale(100%);}body.sbf-mono .sbf-a11y-trigger,body.sbf-mono .sbf-a11y-panel{filter:none;}
+body.sbf-readable *:not(.sbf-a11y-panel):not(.sbf-a11y-panel *):not(.sbf-a11y-trigger){font-family:Arial,sans-serif!important;}
+body.sbf-hilinks a{outline:2px solid #b45309!important;outline-offset:2px!important;background:#fef3c7!important;padding:0 2px!important;}
+body.sbf-spacing p,body.sbf-spacing li,body.sbf-spacing span{letter-spacing:.08em!important;word-spacing:.16em!important;line-height:1.95!important;}
+body.sbf-noanim *:not(.sbf-a11y-trigger):not(.sbf-a11y-panel):not(.sbf-a11y-panel *){animation:none!important;transition:none!important;}
+@media(max-width:768px){.sbf-a11y-trigger{bottom:96px;right:16px;}.sbf-a11y-panel{bottom:160px;right:12px;width:calc(100vw - 24px);max-width:296px;}}
+</style>
+
+<button class="sbf-a11y-trigger" id="sbfA11yTrigger" aria-label="Open accessibility menu" aria-expanded="false">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+</button>
+
+<div class="sbf-a11y-panel" id="sbfA11yPanel" role="dialog" aria-label="Accessibility options" aria-modal="true">
+  <div class="sbf-a11y-head">
+    <span class="sbf-a11y-head-title">&#9650; Accessibility Tools</span>
+    <button class="sbf-a11y-close" id="sbfA11yClose" aria-label="Close accessibility menu">&times;</button>
+  </div>
+  <div class="sbf-a11y-body">
+    <div class="sbf-a11y-size-row">
+      <span class="sbf-a11y-size-lbl">Text Size</span>
+      <div class="sbf-a11y-size-ctrl">
+        <button class="sbf-a11y-sz-btn" id="sbfSzDown" aria-label="Decrease text size">&#8722;</button>
+        <span class="sbf-a11y-sz-val" id="sbfSzVal">100%</span>
+        <button class="sbf-a11y-sz-btn" id="sbfSzUp" aria-label="Increase text size">&#43;</button>
+      </div>
+    </div>
+    <div class="sbf-a11y-grid">
+      <button class="sbf-a11y-btn" id="sbfContrast" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18A9 9 0 0 0 12 3zm0 16V5a7 7 0 0 1 0 14z"/></svg>
+        High Contrast
+      </button>
+      <button class="sbf-a11y-btn" id="sbfMono" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+        Monochrome
+      </button>
+      <button class="sbf-a11y-btn" id="sbfReadable" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z"/></svg>
+        Readable Font
+      </button>
+      <button class="sbf-a11y-btn" id="sbfLinks" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+        Highlight Links
+      </button>
+      <button class="sbf-a11y-btn" id="sbfSpacing" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M9 7H7v10h2V7zm8 0h-2v10h2V7zM3 5v14h2V5H3zm16 0v14h2V5h-2z"/></svg>
+        Text Spacing
+      </button>
+      <button class="sbf-a11y-btn" id="sbfNoAnim" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M6 18L14.5 12 6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>
+        Stop Animation
+      </button>
+    </div>
+    <button class="sbf-a11y-reset" id="sbfReset">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+      Reset to Default
+    </button>
+  </div>
+  <div class="sbf-a11y-foot">SpellingBeeFinder &mdash; Accessibility</div>
+</div>
+
+<script>
+(function(){
+  var T=document.getElementById('sbfA11yTrigger');
+  var P=document.getElementById('sbfA11yPanel');
+  var C=document.getElementById('sbfA11yClose');
+  var fz=100; var MIN=80,MAX=150,STEP=10;
+  function open(v){P.classList.toggle('sbf-open',v);T.setAttribute('aria-expanded',v?'true':'false');}
+  T.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();open(!P.classList.contains('sbf-open'));},{passive:false});
+  T.addEventListener('click',function(e){if(!('ontouchstart' in window)){open(!P.classList.contains('sbf-open'));}});
+  C.addEventListener('click',function(){open(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')open(false);});
+  document.addEventListener('click',function(e){if(!P.contains(e.target)&&e.target!==T)open(false);});
+  document.getElementById('sbfSzUp').addEventListener('click',function(){if(fz<MAX){fz+=STEP;applyFz();}});
+  document.getElementById('sbfSzDown').addEventListener('click',function(){if(fz>MIN){fz-=STEP;applyFz();}});
+  function applyFz(){document.body.style.fontSize=fz+'%';document.getElementById('sbfSzVal').textContent=fz+'%';}
+  var toggles=[{id:'sbfContrast',cls:'sbf-contrast'},{id:'sbfMono',cls:'sbf-mono'},{id:'sbfReadable',cls:'sbf-readable'},{id:'sbfLinks',cls:'sbf-hilinks'},{id:'sbfSpacing',cls:'sbf-spacing'},{id:'sbfNoAnim',cls:'sbf-noanim'}];
+  toggles.forEach(function(t){document.getElementById(t.id).addEventListener('click',function(){var on=document.body.classList.toggle(t.cls);this.classList.toggle('sbf-on',on);this.setAttribute('aria-pressed',on?'true':'false');});});
+  document.getElementById('sbfReset').addEventListener('click',function(){fz=100;applyFz();toggles.forEach(function(t){document.body.classList.remove(t.cls);var b=document.getElementById(t.id);b.classList.remove('sbf-on');b.setAttribute('aria-pressed','false');});});
 })();
 </script>
 </body>
