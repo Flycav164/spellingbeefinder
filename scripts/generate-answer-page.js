@@ -379,10 +379,6 @@ footer{background:#fff;color:var(--s700);border-top:2px solid #e2e8f0;padding:40
       <a href="/index.html">Solver</a>
       <a href="/answers.html" class="active">Daily Answers</a>
       <a href="/gear.html">Books &amp; Gear</a>
-      <a href="/about.html">About</a>
-      <a href="/contact.html">Contact</a>
-      <a href="/disclaimer.html">Disclaimer</a>
-      <a href="/privacy.html">Privacy</a>
     </div>
     <button class="nav-ham" id="navHam" aria-label="Open menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -471,12 +467,15 @@ footer{background:#fff;color:var(--s700);border-top:2px solid #e2e8f0;padding:40
 <footer>
   <div class="foot-inner">
     <div class="foot-col">
-      <span class="foot-brand-name">Spelling<em>Bee</em>Finder</span>
-      <p>Free NYT Spelling Bee solver. Find every word, master the pangram. Updated 2026.</p>
+      <div class="foot-brand-row">
+        <div class="foot-brand-hex"><img src="/bee-icon-nav.webp" alt="bee" width="16" height="16" style="object-fit:contain;display:block;" loading="lazy"></div>
+        <span class="foot-brand-name">Spelling<em>Bee</em>Finder</span>
+      </div>
+      <p>Free NYT Spelling Bee word finder. Find every word, master the pangram. Updated 2026.</p>
     </div>
     <div class="foot-col"><h4>Tools</h4><a href="/index.html">Spelling Bee Solver</a><a href="/answers.html">Daily Answers Archive</a><a href="/index.html">Hints Mode</a><a href="/index.html">Practice Mode</a></div>
-    <div class="foot-col"><h4>Resources</h4><a href="/spelling-bee-solver.html">Solver Guide</a><a href="/spelling-bee-words.html">Spelling Bee Words</a><a href="/spelling-bee-buddy.html">Spelling Bee Buddy</a><a href="/gear.html">Books &amp; Gear</a></div>
-    <div class="foot-col"><h4>Legal</h4><a href="/privacy.html">Privacy Policy</a><a href="/disclaimer.html">Disclaimer</a><a href="/contact.html">Contact</a><a href="/about.html">About</a></div>
+    <div class="foot-col"><h4>Resources</h4><a href="/gear.html">Books &amp; Gear</a><a href="/about.html">About</a><a href="/contact.html">Contact</a></div>
+    <div class="foot-col"><h4>Legal</h4><a href="/privacy.html">Privacy Policy</a><a href="/disclaimer.html">Disclaimer</a></div>
   </div>
   <div class="foot-bottom">
     <p>&copy; 2026 SpellingBeeFinder.com &mdash; Not affiliated with The New York Times. Educational tool only.</p>
