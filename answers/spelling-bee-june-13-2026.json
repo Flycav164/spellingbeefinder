@@ -5,6 +5,9 @@
   "filename": "spelling-bee-june-13-2026.html",
   "centerLetter": "I",
   "pangram": "TALKATIVE",
-  "totalWords": 75,
+  "pangrams": [
+    "TALKATIVE"
+  ],
+  "totalWords": 39,
   "maxScore": 156
 }
