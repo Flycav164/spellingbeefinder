@@ -29,7 +29,10 @@ jobs:
          node-version: '24'
 
      - name: Install dependencies
-       run: npm install ftp-deploy
+       run: |
+         npm install ftp-deploy
+         sudo apt-get update -qq
+         sudo apt-get install -y sshpass
 
      - name: Generate answer page
        run: node scripts/generate-answer-page.js "${{ inputs.target_date }}"
@@ -45,13 +48,6 @@ jobs:
          git push
        env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-     - name: Setup SSH key
-       run: |
-         mkdir -p ~/.ssh
-         echo "${{ secrets.SSH_KEY }}" > ~/.ssh/spellingbee_deploy
-         chmod 600 ~/.ssh/spellingbee_deploy
-         ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
      - name: Compute slug for deploy
        id: slug
@@ -70,16 +66,12 @@ jobs:
          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
          echo "Computed slug: $SLUG"
 
-     - name: Deploy generated files via rsync
+     - name: Deploy generated files via rsync (password auth)
        run: |
          SLUG="${{ steps.slug.outputs.slug }}"
          echo "Deploying: $SLUG"
-         rsync -avz \
-           -e "ssh -i ~/.ssh/spellingbee_deploy -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
+         sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
+           -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
            answers/${SLUG}.html \
            answers/${SLUG}.json \
            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/domains/spellingbeefinder.com/public_html/answers/
-
-     - name: Cleanup SSH key
-       if: always()
-       run: rm -f ~/.ssh/spellingbee_deploy
