@@ -1,10 +1,14 @@
 {
-  "date": "2026-06-13",
-  "friendly": "June 13, 2026",
-  "slug": "spelling-bee-june-13-2026",
-  "filename": "spelling-bee-june-13-2026.html",
-  "centerLetter": "A",
-  "pangram": "ROADBLOCK",
-  "totalWords": 16,
-  "maxScore": 61
+  "date": "2026-06-16",
+  "friendly": "June 16, 2026",
+  "slug": "spelling-bee-june-16-2026",
+  "filename": "spelling-bee-june-16-2026.html",
+  "centerLetter": "Y",
+  "pangram": "NAIVELY",
+  "pangrams": [
+    "NAIVELY",
+    "VENIALLY"
+  ],
+  "totalWords": 31,
+  "maxScore": 158
 }
