@@ -348,7 +348,7 @@ function generateHtml(dates, answers) {
 
   const wordSections = lengths.map(len => {
     const chips = byLen[len].map(({word, pts, isPangram}) =>
-      `<div class="${isPangram ? 'wchip pangram' : 'wchip'}">${word}${isPangram ? ' \u2605' : ''} <span class="wpts">${pts}</span></div>`
+      `<div class="${isPangram ? 'wchip pangram' : 'wchip'}"><span>${[...word].map(ch => ch === centerLetter ? '<span class="center-ltr">' + ch + '</span>' : ch).join('')}</span>${isPangram ? ' \u2605' : ''} <span class="wpts">${pts}</span></div>`
     ).join('\n            ');
     return `
           <div class="length-group">
@@ -432,12 +432,12 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .section-title{font-family:'Bebas Neue',serif;font-size:clamp(20px,3vw,26px);letter-spacing:1.5px;color:var(--s900);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cream-border);}
 .word-sections{margin-bottom:36px;max-height:420px;overflow-y:auto;padding:0 4px 32px;scrollbar-width:thin;scrollbar-color:var(--cream-border) transparent;position:relative;}.word-sections::-webkit-scrollbar{width:4px;}.word-sections::-webkit-scrollbar-track{background:transparent;}.word-sections::-webkit-scrollbar-thumb{background:var(--cream-border);border-radius:4px;}
 .length-group{margin-bottom:20px;}
-.length-label{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;letter-spacing:1px;color:#334155;text-transform:uppercase;background:#e2e8f0;padding:4px 12px;border-radius:6px;display:inline-block;margin-bottom:12px;}
+.length-label{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;letter-spacing:1px;color:#b45309;text-transform:uppercase;background:#fffbeb;border:1.5px solid #f59e0b;padding:4px 12px;border-radius:6px;display:inline-block;margin-bottom:12px;}
 .word-grid{display:flex;flex-wrap:wrap;gap:8px;}
 .wchip{padding:7px 13px;border:1px solid var(--s200);border-radius:9px;background:var(--wh);font-size:14px;font-weight:600;color:var(--s700);display:flex;align-items:center;gap:6px;}
 .wchip.pangram{background:#fef3c7;border-color:var(--bee);color:var(--amber);}
 .wpts{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:4px;padding:1px 5px;}
-.wchip.pangram .wpts{color:#fff;background:#b45309;}.word-fade-overlay{height:32px;margin-top:-32px;margin-bottom:12px;background:linear-gradient(to top,#f1f5f9 20%,transparent);pointer-events:none;position:relative;z-index:1;}
+.wchip.pangram .wpts{color:#fff;background:#b45309;}.center-ltr{color:#f59e0b;font-weight:800;}.wchip.pangram .center-ltr{color:#d97706;}.word-fade-overlay{height:32px;margin-top:-32px;margin-bottom:12px;background:linear-gradient(to top,#f1f5f9 20%,transparent);pointer-events:none;position:relative;z-index:1;}
 .nav-dates{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:12px;}
 .nav-date-btn{flex:1;padding:11px 16px;background:var(--wh);border:1.5px solid var(--s200);border-radius:11px;text-decoration:none;font-size:14px;font-weight:600;color:var(--s700);text-align:center;transition:all .15s;}
 .nav-date-btn:hover{border-color:var(--bee);color:var(--amber);}
