@@ -1,6 +1,6 @@
 // generate-answer-page.js
-// Fetches today's Spelling Bee answers from nytbee.com HTML page
-// Runs daily at 5:05am UTC via GitHub Actions
+// Fetches Spelling Bee answers from nytbee.com HTML page
+// Runs daily at 5:05am UTC via GitHub Actions, or manually via workflow_dispatch with a date override
 
 const https = require('https');
 const http = require('http');
@@ -88,6 +88,45 @@ function fetchUrl(urlStr, timeoutMs) {
   });
 }
 
+// Derive the letter set, center letter, and pangram(s) ANALYTICALLY from the
+// clean word list, rather than pattern-matching presentation markup.
+// By the actual rules of Spelling Bee: every valid word is composed only of
+// letters from the puzzle's 7-letter set, and the center letter appears in
+// every valid word. This is deterministic and does not depend on nytbee's
+// HTML/CSS markup conventions (which we cannot reliably pattern-match from
+// raw HTML — markdown-style "==**word**==" highlighting, for instance, is
+// likely never present in nytbee's actual served HTML).
+function deriveLetterSetAndCenter(words) {
+  if (!words || words.length < 5) {
+    return { ok: false, reason: `Too few words to derive letter set (${words ? words.length : 0})` };
+  }
+  const union = new Set();
+  words.forEach(w => w.split('').forEach(ch => union.add(ch)));
+  const unionArr = [...union].sort();
+
+  if (unionArr.length !== 7) {
+    return { ok: false, reason: `Letter union size ${unionArr.length} (expected exactly 7) — word list likely contaminated` };
+  }
+
+  let centerLetter = '';
+  for (const ch of unionArr) {
+    if (words.every(w => w.includes(ch))) {
+      centerLetter = ch;
+      break;
+    }
+  }
+  if (!centerLetter) {
+    return { ok: false, reason: 'No letter found common to every word — word list likely contaminated' };
+  }
+
+  const pangrams = words.filter(w => unionArr.every(ch => w.includes(ch)));
+  if (pangrams.length === 0) {
+    return { ok: false, reason: 'No pangram found in word list (no word uses all 7 letters)' };
+  }
+
+  return { ok: true, allLetters: unionArr, centerLetter, pangrams };
+}
+
 // Fetch from nytbee.com HTML page
 async function fetchFromNytBee(compact) {
   const url = `https://nytbee.com/Bee_${compact}.html`;
@@ -133,12 +172,10 @@ async function fetchFromNytBee(compact) {
     }
   }
 
-  // Method 3: look for the official answers block — nytbee lists them
-  // after "The official answers for today's puzzle are:"
-  // FIX: must stop BEFORE the "Words not in official answer list" /
-  // "not in today's official answers" section, or this regex bleeds into
-  // the non-official word list and inflates the count with words nytbee
-  // explicitly says are NOT valid answers (e.g. CALCIFIC, FUNICULI).
+  // Method 3: last-resort regex block extraction. Kept as a final fallback
+  // only — this method operates on prose-boundary patterns that are
+  // unreliable against raw HTML and prone to bleeding into adjacent
+  // sections (e.g. "not in official answers" word lists).
   if (words.length < 5) {
     const blockMatch = html.match(/official answers[^]*?(?=Words not in official|not in today's official answers|valid dictionary words|\n\n|\r\n\r\n|<\/)/i);
     if (blockMatch) {
@@ -153,12 +190,27 @@ async function fetchFromNytBee(compact) {
 
   if (words.length < 5) throw new Error(`Could not parse word list (found ${words.length})`);
 
-  // Pangram: marked as ==**word**== in nytbee markdown output
-  const pangramMatch = html.match(/==\*\*([a-z]+)\*\*==/i) ||
-                       html.match(/\*\*([a-z]{7,})\*\*/i) ||
-                       html.match(/class="pangram[^"]*">([a-z]+)</i) ||
-                       html.match(/<strong>([a-z]{7,})<\/strong>/i);
-  const pangram = pangramMatch ? pangramMatch[1].toUpperCase() : '';
+  // Derive letter set, center letter, and pangram(s) analytically.
+  // This doubles as contamination detection: if the word list has stray
+  // words from elsewhere on the page, the letter union won't be exactly 7
+  // and/or no common center letter will exist — both cause a clean throw
+  // here, which the retry wrapper will catch and retry on a fresh fetch.
+  const derived = deriveLetterSetAndCenter(words);
+  if (!derived.ok) {
+    throw new Error(`Word list validation failed: ${derived.reason}`);
+  }
+  const { allLetters, centerLetter, pangrams } = derived;
+
+  // Every valid word must be composed ENTIRELY of letters from the 7-letter
+  // set (not just contain at least one of them — that filtered almost
+  // nothing previously, since most English words share at least one letter
+  // with any given 7-letter set).
+  const letterSet = new Set(allLetters);
+  const validWords = words.filter(w => [...w].every(ch => letterSet.has(ch)));
+
+  if (validWords.length !== words.length) {
+    console.log(`Dropped ${words.length - validWords.length} word(s) containing letters outside the 7-letter set`);
+  }
 
   // Stats
   const maxMatch = html.match(/Maximum Puzzle Score:\s*(\d+)/i);
@@ -166,31 +218,19 @@ async function fetchFromNytBee(compact) {
   const maxScore = maxMatch ? parseInt(maxMatch[1]) : 0;
   const geniusScore = geniusMatch ? parseInt(geniusMatch[1]) : Math.ceil(maxScore * 0.7);
 
-  const allLetters = pangram ? [...new Set(pangram.split(''))] : [];
-
-  // Filter to only words sharing letters with the pangram set
-  const validWords = allLetters.length
-    ? words.filter(w => allLetters.some(l => w.includes(l)))
-    : words;
-
-  // Center letter: appears in every valid word
-  let centerLetter = '';
-  if (pangram) {
-    for (const ch of allLetters) {
-      if (validWords.every(w => w.includes(ch))) {
-        centerLetter = ch;
-        break;
-      }
-    }
+  // Real puzzles always score above 0 — a parsed 0 means the stats regex
+  // failed to match, not that the puzzle genuinely scores zero.
+  if (maxScore === 0) {
+    throw new Error('Parsed maxScore is 0 — stats regex likely failed to match, treating as parse failure');
   }
 
-  console.log(`Parsed: ${validWords.length} words, pangram: ${pangram}, center: ${centerLetter}`);
+  console.log(`Parsed: ${validWords.length} words, pangram(s): ${pangrams.join(', ')}, center: ${centerLetter}`);
 
   return {
     centerLetter,
     allLetters,
     words: validWords.sort((a,b) => b.length - a.length || a.localeCompare(b)),
-    pangrams: pangram ? [pangram] : [],
+    pangrams,
     maxScore,
     geniusScore,
     totalWords: validWords.length
@@ -198,8 +238,9 @@ async function fetchFromNytBee(compact) {
 }
 
 // Retry wrapper — 3 attempts with 10s/30s/60s backoff before giving up
-// on nytbee.com entirely. Handles transient blocks/timeouts/blips without
-// requiring a human to manually re-trigger the workflow.
+// on nytbee.com entirely. Handles transient blocks/timeouts/blips AND
+// transient parse/validation failures without requiring a human to
+// manually re-trigger the workflow.
 async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
   const delays = [10000, 30000, 60000];
   let lastErr;
@@ -222,9 +263,15 @@ async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
 }
 
 // Fallback: spellingbee-answers.com
+// IMPORTANT: this scrapes the homepage, which always shows TODAY's puzzle.
+// It is therefore only ever safe to use on genuine same-day cron runs.
+// main() enforces this by refusing to call this function when a date
+// override was given — using it on a backfill run would silently write
+// today's data under a past date's filename, recreating the exact
+// cross-date corruption this fix is meant to eliminate.
 async function fetchFallback(dates) {
   const url = `https://spellingbee-answers.com/`;
-  console.log(`Trying fallback: ${url}`);
+  console.log(`Trying fallback (today-only, same-day runs): ${url}`);
   const html = await fetchUrl(url, 25000);
 
   if (!html || html.length < 200) throw new Error('Fallback response too short');
@@ -565,12 +612,16 @@ async function main() {
   let answers;
   try {
     answers = await fetchFromNytBeeWithRetry(dates);
-    console.log(`Fetched from nytbee.com: ${answers.totalWords} words, pangram: ${answers.pangrams[0]}`);
+    console.log(`Fetched from nytbee.com: ${answers.totalWords} words, pangram(s): ${answers.pangrams.join(', ')}`);
   } catch (err) {
     console.error(`nytbee.com failed after retries: ${err.message}`);
+    if (isOverride) {
+      console.error('Date override was given — refusing to use the today-only fallback scraper, since it would write the WRONG date\'s data under this filename. Failing job for manual review.');
+      process.exit(1);
+    }
     try {
       answers = await fetchFallback(dates);
-      console.log(`Fallback: ${answers.totalWords} words`);
+      console.log(`Fallback (today-only): ${answers.totalWords} words`);
     } catch (err2) {
       console.error(`All sources failed: ${err2.message}`);
       process.exit(1);
@@ -586,8 +637,8 @@ async function main() {
   const meta = {
     date: dates.iso, friendly: dates.friendly, slug: dates.slug,
     filename: dates.filename, centerLetter: answers.centerLetter,
-    pangram: answers.pangrams[0] || '', totalWords: answers.totalWords,
-    maxScore: answers.maxScore
+    pangram: answers.pangrams[0] || '', pangrams: answers.pangrams,
+    totalWords: answers.totalWords, maxScore: answers.maxScore
   };
   const metaPath = path.join(__dirname, '..', 'answers', `${dates.slug}.json`);
   fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2), 'utf8');
