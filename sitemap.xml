@@ -120,4 +120,46 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://www.spellingbeefinder.com/404.html</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.1</priority>
+  </url>
+  <url>
+    <loc>https://www.spellingbeefinder.com/403.html</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.1</priority>
+  </url>
+  <url>
+    <loc>https://www.spellingbeefinder.com/spelling-bee-pangram.html</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.spellingbeefinder.com/spelling-bee-tips-genius.html</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.spellingbeefinder.com/nyt-spelling-bee-rules.html</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.spellingbeefinder.com/spelling-bee-history.html</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.spellingbeefinder.com/spelling-bee-queen-bee.html</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
