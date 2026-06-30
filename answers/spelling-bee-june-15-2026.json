@@ -3,8 +3,13 @@
   "friendly": "June 15, 2026",
   "slug": "spelling-bee-june-15-2026",
   "filename": "spelling-bee-june-15-2026.html",
-  "centerLetter": "",
+  "centerLetter": "H",
   "pangram": "APATHETIC",
-  "totalWords": 57,
+  "pangrams": [
+    "APATHETIC",
+    "HEPATIC",
+    "PATHETIC"
+  ],
+  "totalWords": 63,
   "maxScore": 288
 }
