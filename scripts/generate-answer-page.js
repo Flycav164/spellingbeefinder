@@ -1,9 +1,6 @@
 // generate-answer-page.js
 // Fetches Spelling Bee answers from nytbee.com HTML page
 // Runs daily at 5:05am UTC via GitHub Actions, or manually via workflow_dispatch with a date override
-// TEMPORARY DIAGNOSTIC VERSION — has extra console.log debug lines added
-// to investigate why word extraction is failing. No logic changes vs the
-// last version other than the added logging.
 
 const https = require('https');
 const http = require('http');
@@ -96,9 +93,7 @@ function fetchUrl(urlStr, timeoutMs) {
 // By the actual rules of Spelling Bee: every valid word is composed only of
 // letters from the puzzle's 7-letter set, and the center letter appears in
 // every valid word. This is deterministic and does not depend on nytbee's
-// HTML/CSS markup conventions (which we cannot reliably pattern-match from
-// raw HTML — markdown-style "==**word**==" highlighting, for instance, is
-// likely never present in nytbee's actual served HTML).
+// HTML/CSS markup conventions.
 function deriveLetterSetAndCenter(words) {
   if (!words || words.length < 5) {
     return { ok: false, reason: `Too few words to derive letter set (${words ? words.length : 0})` };
@@ -156,10 +151,7 @@ async function fetchFromNytBee(compact) {
   // OUTSIDE the actual answer list — site nav, "Other days with this
   // pangram" links, the "Words not in official answer list" section, the
   // first-letter frequency chart, etc. Every extraction method below must
-  // operate ONLY within the official-answers section, not the full page,
-  // or it will silently pull in contamination (this is what caused the
-  // June 15 word-list validation failures — Method 2 was matching <li>
-  // tags from elsewhere on the page, not just the answer list).
+  // operate ONLY within the official-answers section, not the full page.
   let scopedHtml = html;
   const scopeStart = html.search(/official answers/i);
   if (scopeStart !== -1) {
@@ -171,51 +163,61 @@ async function fetchFromNytBee(compact) {
     console.log('Warning: "official answers" anchor text not found — scanning full page (higher contamination risk)');
   }
 
-  // ===== TEMPORARY DIAGNOSTIC LOGGING =====
-  // No extraction-logic changes in this run. Purely to SEE what the script
-  // actually receives, instead of guessing at boundary text again.
-  console.log('=== DEBUG: first 800 chars of scopedHtml ===');
-  console.log(JSON.stringify(scopedHtml.slice(0, 800)));
-  console.log('=== DEBUG: chars 800-1600 of scopedHtml ===');
-  console.log(JSON.stringify(scopedHtml.slice(800, 1600)));
-  console.log('=== DEBUG: last 400 chars of scopedHtml ===');
-  console.log(JSON.stringify(scopedHtml.slice(-400)));
-  // ===== END TEMPORARY DIAGNOSTIC LOGGING =====
-
-  // Method 1: plain text dash-list pattern — nytbee renders "- word" lines
-  const dashMatches = scopedHtml.match(/^-\s+([a-z]+)\s*$/gim);
-  console.log(`DEBUG: Method 1 raw match count (any size): ${dashMatches ? dashMatches.length : 0}`);
-  if (dashMatches && dashMatches.length >= 5) {
+  // Method 1: nytbee.com renders each answer word as an individual link:
+  // <a href="javascript:void(0)" onclick="show_..." class="link-definition">word</a>
+  // Confirmed via diagnostic logging on 2026-06-15 — this is the actual
+  // structure of the real HTML, not the dash-list or <li> formats the
+  // fallback methods below were originally written for (those formats
+  // never existed in the real raw HTML; they were artifacts of a
+  // markdown-converted preview tool, not what the script actually fetches).
+  const linkDefMatches = scopedHtml.match(/<a[^>]*class="link-definition"[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/gi);
+  if (linkDefMatches && linkDefMatches.length >= 5) {
     words = [...new Set(
-      dashMatches
-        .map(m => m.replace(/^-\s+/, '').trim().toUpperCase())
+      linkDefMatches
+        .map(m => {
+          const inner = m.match(/>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/a>/i);
+          return inner ? inner[1].toUpperCase() : '';
+        })
         .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
     )];
-    console.log(`Method 1 (dash-list, scoped): ${words.length} words`);
+    console.log(`Method 1 (link-definition anchors): ${words.length} words`);
   }
 
-  // Method 2: <li> tags, scoped to the official-answers section only
+  // Method 2: plain text dash-list pattern (kept as fallback, in case
+  // nytbee's markup changes in the future)
+  if (words.length < 5) {
+    const dashMatches = scopedHtml.match(/^-\s+([a-z]+)\s*$/gim);
+    if (dashMatches && dashMatches.length >= 5) {
+      words = [...new Set(
+        dashMatches
+          .map(m => m.replace(/^-\s+/, '').trim().toUpperCase())
+          .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
+      )];
+      console.log(`Method 2 (dash-list, scoped): ${words.length} words`);
+    }
+  }
+
+  // Method 3: <li> tags, scoped to the official-answers section only
   if (words.length < 5) {
     const liMatches = scopedHtml.match(/<li[^>]*>\s*(?:<[^>]+>)*([a-z]+)(?:<[^>]+>)*\s*<\/li>/gi);
-    console.log(`DEBUG: Method 2 raw match count (any size): ${liMatches ? liMatches.length : 0}`);
     if (liMatches && liMatches.length >= 5) {
       words = [...new Set(
         liMatches
           .map(m => m.replace(/<[^>]+>/g, '').trim().toUpperCase())
           .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
       )];
-      console.log(`Method 2 (<li> tags, scoped): ${words.length} words`);
+      console.log(`Method 3 (<li> tags, scoped): ${words.length} words`);
     }
   }
 
-  // Method 3: last-resort plain-word extraction from the same scoped
-  // block. Kept as a final fallback only — scoping already removes most
-  // of the risk this method historically carried.
+  // Method 4: last-resort plain-word extraction from the same scoped
+  // block. True last resort only — picks up HTML/JS noise words if the
+  // above structural methods fail, so its results are least trustworthy.
   if (words.length < 5) {
     const found = scopedHtml.match(/\b([a-z]{4,})\b/g);
     if (found) {
       words = [...new Set(found.map(w => w.toUpperCase()))];
-      console.log(`Method 3 (scoped plain-word scan): ${words.length} words`);
+      console.log(`Method 4 (scoped plain-word scan): ${words.length} words`);
     }
   }
 
@@ -233,9 +235,7 @@ async function fetchFromNytBee(compact) {
   const { allLetters, centerLetter, pangrams } = derived;
 
   // Every valid word must be composed ENTIRELY of letters from the 7-letter
-  // set (not just contain at least one of them — that filtered almost
-  // nothing previously, since most English words share at least one letter
-  // with any given 7-letter set).
+  // set (not just contain at least one of them).
   const letterSet = new Set(allLetters);
   const validWords = words.filter(w => [...w].every(ch => letterSet.has(ch)));
 
@@ -269,9 +269,7 @@ async function fetchFromNytBee(compact) {
 }
 
 // Retry wrapper — 3 attempts with 10s/30s/60s backoff before giving up
-// on nytbee.com entirely. Handles transient blocks/timeouts/blips AND
-// transient parse/validation failures without requiring a human to
-// manually re-trigger the workflow.
+// on nytbee.com entirely.
 async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
   const delays = [10000, 30000, 60000];
   let lastErr;
@@ -296,10 +294,6 @@ async function fetchFromNytBeeWithRetry(dates, maxAttempts = 3) {
 // Fallback: spellingbee-answers.com
 // IMPORTANT: this scrapes the homepage, which always shows TODAY's puzzle.
 // It is therefore only ever safe to use on genuine same-day cron runs.
-// main() enforces this by refusing to call this function when a date
-// override was given — using it on a backfill run would silently write
-// today's data under a past date's filename, recreating the exact
-// cross-date corruption this fix is meant to eliminate.
 async function fetchFallback(dates) {
   const url = `https://spellingbee-answers.com/`;
   console.log(`Trying fallback (today-only, same-day runs): ${url}`);
