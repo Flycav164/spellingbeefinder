@@ -106,19 +106,21 @@ ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
 .sbn-wa{background:#25d366;color:#fff;}
 .sbn-em{background:var(--s300,#cbd5e1);color:var(--s700);}
 footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 20px 28px;margin-top:56px;}
-.foot-inner{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;margin-bottom:24px;}
-.foot-col{display:flex;flex-direction:column;gap:8px;min-width:140px;}
+.foot-inner{max-width:1100px;margin:0 auto;display:flex;flex-wrap:nowrap;gap:28px;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}
+.foot-col{display:flex;flex-direction:column;gap:8px;min-width:120px;flex:1;}
 .foot-col h4{font-size:13px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'DM Mono',monospace;}
-.foot-col a{font-size:15px;color:#334155;text-decoration:none;line-height:1.9;}
+.foot-col a{font-size:15px;color:#334155;text-decoration:none;line-height:1.8;}
 .foot-col a:hover{color:#0f172a;}
 .foot-col p{font-size:14px;color:#475569;line-height:1.6;margin:0;}
 .foot-bottom{max-width:1100px;margin:0 auto;padding:16px 0 0;border-top:1px solid #e2e8f0;font-size:14px;color:#475569;line-height:1.6;}
-.foot-brand-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}.foot-brand-name{font-family:'Bebas Neue',serif;font-size:19px;letter-spacing:2px;color:#0f172a;}
+.foot-brand-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.foot-brand-hex{display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.foot-brand-name{font-family:'Bebas Neue',serif;font-size:19px;letter-spacing:2px;color:#0f172a;}
 .foot-brand-name em{color:var(--amber);font-style:normal;}
 @media(max-width:768px){
   body{background:#f1f5f9;}
   footer{background:#fff;border-top:2px solid #e2e8f0;padding:28px 16px 20px;margin-top:32px;}
-  .foot-inner{flex-direction:column;gap:16px;}
+  .foot-inner{flex-direction:column;flex-wrap:wrap;gap:16px;}
   .foot-col{min-width:unset;width:100%;}
   nav{background:rgba(248,250,252,.98);}
   .nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:#fff;flex-direction:column;padding:8px 12px 12px;gap:2px;border-bottom:1px solid var(--s200);box-shadow:0 4px 16px rgba(0,0,0,.08);z-index:199;}
@@ -292,16 +294,30 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
 </div>
 <footer>
   <div class="foot-inner">
-    <div class="foot-col">
+    <div class="foot-col" style="flex:1.5;min-width:180px;max-width:240px;">
       <div class="foot-brand-row">
-        <div class="foot-brand-hex"><img src="/bee-icon-nav.webp" alt="bee" width="16" height="16" style="object-fit:contain;display:block;" loading="lazy"></div>
+        <div class="foot-brand-hex"><img src="/bee-icon-nav.webp" alt="bee" width="28" height="28" style="object-fit:contain;display:block;" loading="lazy"></div>
         <span class="foot-brand-name">Spelling<em>Bee</em>Finder</span>
       </div>
       <p>Free NYT Spelling Bee word finder. Find every word, master the pangram. Updated 2026.</p>
     </div>
-    <div class="foot-col"><h4>Tools</h4><a href="/index.html">Spelling Bee Solver</a><a href="/answers.html">Daily Answers Archive</a><a href="/index.html">Hints Mode</a><a href="/index.html">Practice Mode</a></div>
-    <div class="foot-col"><h4>Resources</h4><a href="/gear.html">Books &amp; Gear</a><a href="/about.html">About</a><a href="/contact.html">Contact</a></div>
-    <div class="foot-col"><h4>Legal</h4><a href="/privacy.html">Privacy Policy</a><a href="/disclaimer.html">Disclaimer</a></div>
+    <div class="foot-col" style="flex:1;min-width:120px;">
+      <h4>Tools</h4>
+      <a href="/index.html">Spelling Bee Solver</a>
+      <a href="/answers.html">Daily Answers Archive</a>
+      <a href="/index.html">Practice Mode</a>
+    </div>
+    <div class="foot-col" style="flex:1;min-width:120px;">
+      <h4>Resources</h4>
+      <a href="/gear.html">Books &amp; Gear</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+    </div>
+    <div class="foot-col" style="flex:1;min-width:120px;">
+      <h4>Legal</h4>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+    </div>
   </div>
   <div class="foot-bottom">
     <p>&copy; 2026 SpellingBeeFinder.com &mdash; Not affiliated with The New York Times. Educational tool only.</p>
