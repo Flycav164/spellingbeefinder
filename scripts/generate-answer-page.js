@@ -461,18 +461,19 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .ad-wrap{margin:32px 0;text-align:center;}
 .ad-slot-label{font-family:'DM Mono',monospace;font-size:13px;color:var(--s500);margin-bottom:4px;}
 ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
-.share-strip{display:flex;align-items:center;gap:10px;margin:36px 0 48px;padding:13px 18px;background:var(--wh);border:1px solid var(--s200);border-radius:14px;}
-.share-strip-lbl{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--s500);white-space:nowrap;flex-shrink:0;}
-.share-btns{display:flex;gap:7px;flex-wrap:wrap;flex:1;}
-.sbn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:transform .12s;border:none;flex-shrink:0;}
+.share-strip{margin:36px 0 48px;padding:24px 12px;background:var(--wh);border:1.5px solid var(--s200);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.05);display:flex;flex-direction:column;align-items:center;}
+.share-strip-lbl{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#b45309;margin:0 0 6px;text-align:center;}
+.share-strip-sub{font-size:14px;color:var(--s600);margin:0 0 18px;line-height:1.5;text-align:center;}
+.share-btns{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;}
+.sbn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:transform .12s;border:none;flex-shrink:0;}
 .sbn:hover{transform:scale(1.12);}
 .sbn-native{background:#f59e0b;color:#fff;}
-.sbn-copy{background:var(--s200);color:var(--s700);}
+.sbn-copy{background:#475569;color:#fff;}
 .sbn-fb{background:#1877f2;color:#fff;}
 .sbn-tw{background:#000;color:#fff;}
 .sbn-li{background:#0a66c2;color:#fff;}
 .sbn-wa{background:#25d366;color:#fff;}
-.sbn-em{background:var(--s300,#cbd5e1);color:var(--s700);}
+.sbn-em{background:#334155;color:#fff;}
 footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 20px 28px;margin-top:56px;}
 .foot-inner{max-width:1100px;margin:0 auto;display:flex;flex-wrap:nowrap;gap:28px;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}
 .foot-col{display:flex;flex-direction:column;gap:8px;min-width:120px;flex:1;}
@@ -581,10 +582,11 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
     <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What letters are in Spelling Bee ${friendly}?<span class="faq-chev">\u2964</span></button><div class="faq-a">The letters for ${friendly} are ${allLetters.join(', ')}. Center letter is ${centerLetter} which must appear in every valid word. Words must be at least 4 letters and can reuse letters freely.</div></div>
   </div>
   <div class="share-strip" aria-label="Share this page">
-    <span class="share-strip-lbl">Share</span>
+    <span class="share-strip-lbl">Share This Page</span>
+    <p class="share-strip-sub">Found today&rsquo;s answers helpful? Share with a fellow Spelling Bee player.</p>
     <div class="share-btns">
       <button class="sbn sbn-native" onclick="if(navigator.share){navigator.share({title:'Spelling Bee ${friendly} Answers',url:'https://www.spellingbeefinder.com/answers/${slug}.html'})}" aria-label="Share"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
-      <button class="sbn sbn-copy" id="sbn-copy-${slug}" onclick="navigator.clipboard.writeText('https://www.spellingbeefinder.com/answers/${slug}.html').then(function(){var b=document.getElementById('sbn-copy-${slug}');b.style.background='#059669';b.style.color='#fff';setTimeout(function(){b.style.background='';b.style.color=''},2500)})" aria-label="Copy link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      <button class="sbn sbn-copy" id="sbn-copy-${slug}" onclick="navigator.clipboard.writeText('https://www.spellingbeefinder.com/answers/${slug}.html').then(function(){var b=document.getElementById('sbn-copy-${slug}');b.style.background='#059669';setTimeout(function(){b.style.background='#475569'},2500)})" aria-label="Copy link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       <a class="sbn sbn-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html" target="_blank" rel="noopener" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
       <a class="sbn sbn-tw" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html&text=Spelling%20Bee%20${friendly.replace(/ /g,'%20')}%20Answers" target="_blank" rel="noopener" aria-label="X"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
       <a class="sbn sbn-li" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html" target="_blank" rel="noopener" aria-label="LinkedIn"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
