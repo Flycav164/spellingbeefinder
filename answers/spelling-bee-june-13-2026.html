@@ -93,10 +93,10 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .ad-wrap{margin:32px 0;text-align:center;}
 .ad-slot-label{font-family:'DM Mono',monospace;font-size:13px;color:var(--s500);margin-bottom:4px;}
 ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
-.share-strip{margin:36px 0 48px;padding:24px 12px;background:var(--wh);border:1.5px solid var(--s200);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.05);display:flex;flex-direction:column;align-items:center;}
-.share-strip-lbl{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#b45309;margin:0 0 6px;text-align:center;}
-.share-strip-sub{font-size:14px;color:var(--s600);margin:0 0 18px;line-height:1.5;text-align:center;}
-.share-btns{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;width:100%;}
+.share-strip{margin:36px 0 48px;padding:24px 12px;background:var(--wh);border:1.5px solid var(--s200);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.05);text-align:center;}
+.share-strip-lbl{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#b45309;margin:0 0 6px;display:block;}
+.share-strip-sub{font-size:14px;color:var(--s600);margin:0 0 18px;line-height:1.5;display:block;}
+.share-btns{display:inline-flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;}
 .sbn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:transform .12s;border:none;flex-shrink:0;}
 .sbn:hover{transform:scale(1.12);}
 .sbn-native{background:#f59e0b;color:#fff;}
@@ -131,7 +131,8 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   .stats-row{grid-template-columns:1fr 1fr;}
   .page{padding:20px 14px 60px;}
   .cta-card{flex-direction:column;}
-  .share-strip{flex-wrap:wrap;}
+  .share-strip{padding:20px 10px;}
+  .share-btns{gap:8px;}
   .word-grid{gap:6px;}
   .mobile-nav-bar{display:flex;}
   body{padding-bottom:80px;}
