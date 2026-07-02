@@ -445,20 +445,21 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .stat-val{font-family:'Bebas Neue',serif;font-size:32px;color:var(--bee);line-height:1;}
 .stat-lbl{font-size:11px;color:var(--s500);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
 
-/* ===== PANGRAM CARD — FIX: larger word, hero treatment ===== */
-.pangram-card{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid var(--bee);border-radius:16px;padding:22px 24px;margin-bottom:28px;position:relative;overflow:hidden;}
-.pangram-card::before{content:'\u2b50';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.12;}
-.pangram-label{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--amber);margin-bottom:6px;}
-.pangram-word{font-family:'Bebas Neue',serif;font-size:clamp(32px,6vw,48px);color:var(--s900);letter-spacing:3px;line-height:1;margin-bottom:6px;}
-.pangram-info{font-size:14px;color:var(--s600);}
-.pangram-extra{font-size:13px;color:var(--s600);margin-top:4px;}
+/* ===== PANGRAM CARD — dark hero, white text, impossible to miss ===== */
+.pangram-card{background:linear-gradient(135deg,#0f172a,#1e293b);border:none;border-radius:16px;padding:24px 28px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.pangram-card::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(245,158,11,.08);border-radius:50%;}
+.pangram-card::after{content:'';position:absolute;bottom:-40px;left:10%;width:100px;height:100px;background:rgba(245,158,11,.05);border-radius:50%;}
+.pangram-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;margin-bottom:8px;position:relative;z-index:1;display:flex;align-items:center;gap:6px;}
+.pangram-word{font-family:'Bebas Neue',serif;font-size:clamp(36px,7vw,52px);color:#ffffff;letter-spacing:4px;line-height:1;margin-bottom:8px;position:relative;z-index:1;}
+.pangram-info{font-size:14px;color:rgba(255,255,255,.7);position:relative;z-index:1;}
+.pangram-extra{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px;position:relative;z-index:1;}
 
 /* ===== SECTION HEADER — FIX: amber underline treatment ===== */
 .section-title{font-family:'Bebas Neue',serif;font-size:clamp(20px,3vw,26px);letter-spacing:1.5px;color:var(--s900);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(to right,var(--cream-border),transparent);}
 
-/* ===== WORD SECTIONS ===== */
-.word-sections{margin-bottom:8px;max-height:440px;overflow-y:auto;padding:0 4px 32px;scrollbar-width:thin;scrollbar-color:var(--cream-border) transparent;position:relative;}
+/* ===== WORD SECTIONS — scrollable desktop, fully expanded mobile ===== */
+.word-sections{margin-bottom:8px;max-height:480px;overflow-y:auto;padding:0 4px 32px;scrollbar-width:thin;scrollbar-color:var(--cream-border) transparent;position:relative;}
 .word-sections::-webkit-scrollbar{width:4px;}
 .word-sections::-webkit-scrollbar-track{background:transparent;}
 .word-sections::-webkit-scrollbar-thumb{background:var(--cream-border);border-radius:4px;}
@@ -471,9 +472,10 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .wchip:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);}
 .wchip.pangram{background:#fef3c7;border-color:var(--bee);color:#92400e;box-shadow:0 1px 4px rgba(245,158,11,.2);}
 .wchip.hi-val{border-color:#c7d2fe;background:#eef2ff;}
-/* FIX: center letter bright amber — unmistakable at scroll speed */
-.center-ltr{color:#b45309;font-weight:900;text-decoration:underline;text-decoration-color:rgba(180,83,9,.3);text-underline-offset:2px;}
+/* center letter: bright bee amber on white chips, pops at scroll speed */
+.center-ltr{color:#d97706;font-weight:900;}
 .wchip.pangram .center-ltr{color:#92400e;}
+.wchip.hi-val .center-ltr{color:#4338ca;}
 .wpts{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:#92400e;background:#fde68a;border-radius:4px;padding:1px 5px;}
 .wchip.pangram .wpts{color:#fff;background:#b45309;}
 .wchip.hi-val .wpts{color:#3730a3;background:#e0e7ff;}
@@ -503,7 +505,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .faq-section{margin:40px 0;}
 .faq-item{border-bottom:1px solid var(--cream-border);padding:13px 0;}
 .faq-q{width:100%;text-align:left;background:none;border:none;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;color:var(--s800);padding:0;line-height:1.4;}
-.faq-chev{color:var(--s500);font-size:20px;flex-shrink:0;transition:transform .18s;}
+.faq-chev{color:var(--s500);flex-shrink:0;transition:transform .18s;display:block;}
 .faq-chev.open{transform:rotate(180deg);}
 .faq-a{font-size:15px;color:var(--s600);line-height:1.75;margin-top:10px;padding-right:20px;display:none;}
 .faq-a.open{display:block;}
@@ -514,7 +516,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
 
 /* ===== SHARE BOX — FIX: green gradient matching master standards ===== */
-.share-strip{margin:36px 0 48px;padding:32px 28px;background:linear-gradient(135deg,#065f46,#059669);border-radius:16px;position:relative;overflow:hidden;}
+.share-strip{margin:36px 0 16px;padding:32px 28px;background:linear-gradient(135deg,#065f46,#059669);border-radius:16px;position:relative;overflow:hidden;}
 .share-strip::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.06);border-radius:50%;}
 .share-strip::after{content:'';position:absolute;bottom:-30px;left:20%;width:100px;height:100px;background:rgba(255,255,255,.04);border-radius:50%;}
 .share-strip-lbl{font-family:'Bebas Neue',serif;font-size:26px;letter-spacing:1px;color:#fff;margin-bottom:4px;display:block;position:relative;z-index:1;}
@@ -565,7 +567,11 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   .word-grid{gap:6px;}
   .mobile-nav-bar{display:flex;}
   body{padding-bottom:80px;}
-  .pangram-word{font-size:clamp(28px,8vw,42px);}
+  .pangram-word{font-size:clamp(32px,8vw,46px);}
+  /* Remove nested scroll on mobile — fully expand word list */
+  .word-sections{max-height:none;overflow-y:visible;padding-bottom:8px;}
+  .word-fade-overlay{display:none;}
+  .share-qr{display:none;}
 }
 @media(max-width:400px){
   .share-btns{gap:6px;}
@@ -626,10 +632,10 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   <div class="word-fade-overlay"></div>
   <div class="cta-card">
     <div>
-      <h3>Want to Find Words You Missed?</h3>
-      <p>Load today&rsquo;s letters into our free solver and search without spoilers.</p>
+      <h3>Miss Words Like These Every Week?</h3>
+      <p>The players who find ALLEVIATE and TITILLATE consistently study Latin and Greek roots. These books teach the system.</p>
     </div>
-    <a href="/index.html" class="cta-btn">Open Solver &rarr;</a>
+    <a href="/gear.html" class="cta-btn">See the Books &rarr;</a>
   </div>
   <div class="ad-wrap">
     <div class="ad-slot-label">Advertisement</div>
@@ -637,20 +643,21 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>
   <div class="nav-dates">
-    <a href="/answers/${prevSlug}.html" class="nav-date-btn">&larr; Previous Puzzle</a>
+    <a href="/answers/${prevSlug}.html" class="nav-date-btn">&larr; Previous</a>
     <a href="/answers.html" class="nav-date-btn today">All Answers</a>
+    <a href="#" class="nav-date-btn" id="desk-next-btn">Next &rarr;</a>
   </div>
   <div class="faq-section">
     <h2 class="section-title">Frequently Asked Questions</h2>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Spelling Bee answer for ${friendly}?<span class="faq-chev">\u2964</span></button><div class="faq-a">The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. The center letter is ${centerLetter} and the pangram is ${primaryPangram}. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Spelling Bee pangram for ${friendly}?<span class="faq-chev">\u2964</span></button><div class="faq-a">The pangram for ${friendly} is ${primaryPangram}. It uses all 7 letters at least once and is worth ${primaryPangram.length + 7} points (${primaryPangram.length} for length plus 7 pangram bonus).</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">How many words in Spelling Bee ${friendly}?<span class="faq-chev">\u2964</span></button><div class="faq-a">The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points. Center letter is ${centerLetter}.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Genius score for Spelling Bee ${friendly}?<span class="faq-chev">\u2964</span></button><div class="faq-a">Genius threshold for ${friendly} is ${geniusScore} points (70% of max ${maxScore}). Queen Bee requires all ${totalWords} words for the full ${maxScore} points.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What letters are in Spelling Bee ${friendly}?<span class="faq-chev">\u2964</span></button><div class="faq-a">The letters for ${friendly} are ${allLetters.join(', ')}. Center letter is ${centerLetter} which must appear in every valid word. Words must be at least 4 letters and can reuse letters freely.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Spelling Bee answer for ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. The center letter is ${centerLetter} and the pangram is ${primaryPangram}. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Spelling Bee pangram for ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">The pangram for ${friendly} is ${primaryPangram}. It uses all 7 letters at least once and is worth ${primaryPangram.length + 7} points (${primaryPangram.length} for length plus 7 pangram bonus).</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">How many words in Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points. Center letter is ${centerLetter}.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Genius score for Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">Genius threshold for ${friendly} is ${geniusScore} points (70% of max ${maxScore}). Queen Bee requires all ${totalWords} words for the full ${maxScore} points.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What letters are in Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">The letters for ${friendly} are ${allLetters.join(', ')}. Center letter is ${centerLetter} which must appear in every valid word. Words must be at least 4 letters and can reuse letters freely.</div></div>
   </div>
   <div class="share-strip" aria-label="Share this page">
     <span class="share-strip-lbl">Share These Answers</span>
-    <span class="share-strip-sub">Found today&rsquo;s answers? Share with a fellow Spelling Bee player.</span>
+    <span class="share-strip-sub">${primaryPangram} stumped a lot of players today. Share before the next puzzle drops.</span>
     <div class="share-btns">
       <button class="sbn sbn-native" onclick="if(navigator.share){navigator.share({title:'Spelling Bee ${friendly} Answers',url:'https://www.spellingbeefinder.com/answers/${slug}.html'})}" aria-label="Share"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
       <button class="sbn sbn-copy" id="sbn-copy-${slug}" onclick="navigator.clipboard.writeText('https://www.spellingbeefinder.com/answers/${slug}.html').then(function(){var b=document.getElementById('sbn-copy-${slug}');b.style.background='#059669';setTimeout(function(){b.style.background='#475569'},2500)})" aria-label="Copy link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
@@ -659,6 +666,10 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
       <a class="sbn sbn-li" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html" target="_blank" rel="noopener" aria-label="LinkedIn"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
       <a class="sbn sbn-wa" href="https://api.whatsapp.com/send?text=Spelling%20Bee%20${friendly.replace(/ /g,'%20')}%20Answers%20https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg></a>
       <a class="sbn sbn-em" href="mailto:?subject=Spelling%20Bee%20${friendly.replace(/ /g,'%20')}%20Answers&body=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html" aria-label="Email"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></a>
+    </div>
+    <div class="share-qr" style="margin-top:20px;display:flex;align-items:center;gap:14px;position:relative;z-index:1;">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html&color=000000&bgcolor=ffffff" alt="QR code for Spelling Bee ${friendly} answers page" width="80" height="80" loading="lazy" style="border-radius:8px;background:#fff;padding:4px;display:block;">
+      <span style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.4;">Scan to share<br>on your phone</span>
     </div>
   </div>
 </div>
@@ -695,7 +706,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   </div>
   <div class="foot-bottom">
     <p>&copy; 2026 SpellingBeeFinder.com &mdash; Not affiliated with The New York Times. Educational tool only.</p>
-    <p>SpellingBeeFinder.com is a participant in the Amazon Services LLC Associates Program (tag: williamdunb0d-20). <a href="/disclaimer.html">Full Disclosure</a></p>
+    <p>SpellingBeeFinder.com is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com (tag: williamdunb0d-20). <a href="/disclaimer.html">Full Disclosure</a></p>
   </div>
 </footer>
 <script>
@@ -709,6 +720,8 @@ document.getElementById('navHam').addEventListener('click',function(){document.g
   var nextSlug='spelling-bee-'+mn[d.getMonth()]+'-'+String(d.getDate()).padStart(2,'0')+'-'+d.getFullYear();
   var btn=document.getElementById('next-puzzle-btn');
   if(btn){btn.href='/answers/'+nextSlug+'.html';}
+  var deskBtn=document.getElementById('desk-next-btn');
+  if(deskBtn){deskBtn.href='/answers/'+nextSlug+'.html';}
 })();
 </script>
 </body>
