@@ -84,7 +84,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .pangram-extra{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px;position:relative;z-index:1;}
 
 /* ===== PUZZLE SUMMARY ===== */
-.puzzle-summary{background:var(--wh);border:1.5px solid var(--s200);border-radius:14px;padding:22px 26px;margin-bottom:28px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.puzzle-summary{background:var(--wh);border:1.5px solid var(--s200);border-radius:14px;padding:22px 26px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
 .puzzle-summary p{font-size:15px;color:var(--s700);line-height:1.75;margin-bottom:14px;}
 .puzzle-summary p:last-child{margin-bottom:0;}
 .puzzle-summary strong{color:var(--s900);font-weight:700;}
@@ -92,7 +92,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .body-link:hover{color:#92400e;}
 
 /* ===== SECTION HEADER — amber gradient underline ===== */
-.section-title{font-family:'Bebas Neue',serif;font-size:clamp(20px,3vw,26px);letter-spacing:1.5px;color:var(--s900);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.section-title{font-family:'Bebas Neue',serif;font-size:clamp(20px,3vw,26px);letter-spacing:1.5px;color:var(--s900);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
 .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(to right,var(--cream-border),transparent);}
 
 /* ===== WORD SECTIONS — framed scrollable container matching index.html ===== */
@@ -104,7 +104,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .length-group{margin-bottom:20px;}
 .length-label{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;letter-spacing:1px;color:#b45309;text-transform:uppercase;background:#fffbeb;border:1.5px solid #f59e0b;padding:4px 12px;border-radius:6px;display:inline-block;margin-bottom:10px;}
 .word-grid{display:flex;flex-wrap:wrap;gap:7px;}
-.word-scroll-hint{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;background:var(--s50);border-top:1px solid var(--s200);font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--s500);letter-spacing:.8px;text-transform:uppercase;}
+.word-scroll-hint{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;background:var(--s50);border-top:1px solid var(--s200);font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--amber);letter-spacing:.8px;text-transform:uppercase;}
 
 /* ===== WORD CHIPS ===== */
 .wchip{padding:7px 13px;border:1px solid var(--s200);border-radius:9px;background:var(--wh);font-size:14px;font-weight:600;color:var(--s700);display:flex;align-items:center;gap:6px;transition:box-shadow .12s;}
@@ -115,10 +115,10 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .center-ltr{color:#d97706;font-weight:900;}
 .wchip.pangram .center-ltr{color:#92400e;}
 .wchip.hi-val .center-ltr{color:#4338ca;}
-.wpts{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:#92400e;background:#fde68a;border-radius:4px;padding:1px 5px;}
+.wpts{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:#92400e;background:#fde68a;border-radius:4px;padding:2px 6px;}
 .wchip.pangram .wpts{color:#fff;background:#b45309;}
 .wchip.hi-val .wpts{color:#3730a3;background:#e0e7ff;}
-.word-fade-overlay{height:48px;margin-top:-48px;background:linear-gradient(to top,rgba(255,255,255,.98) 20%,transparent);pointer-events:none;position:relative;z-index:1;}
+.word-fade-overlay{height:56px;position:sticky;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(255,255,255,1) 0%,rgba(255,255,255,.9) 40%,transparent 100%);pointer-events:none;z-index:2;margin-top:-56px;}
 
 /* ===== PREV/NEXT NAV (desktop only — hidden on mobile by @media below) ===== */
 .nav-dates{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:12px;}
@@ -191,7 +191,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
   body{background:#f1f5f9;}
-  .page{padding:20px 16px 96px;}
+  .page{padding:20px 16px 72px;}
   footer{background:#fff;border-top:2px solid #e2e8f0;padding:28px 16px 20px;margin-top:16px;}
   .foot-inner{flex-direction:column;flex-wrap:wrap;gap:16px;}
   .foot-col{min-width:unset;width:100%;}
@@ -210,7 +210,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   /* Mobile nav bar ON — inline desktop nav OFF */
   .mobile-nav-bar{display:flex;}
   .nav-dates{display:none;}
-  body{padding-bottom:96px;}
+  body{padding-bottom:72px;}
   .pangram-word{font-size:clamp(48px,12vw,72px);}
   /* Mobile word frame — constrained scroll matching index.html */
   .word-sections-frame{border-radius:12px;}
