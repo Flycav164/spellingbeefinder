@@ -332,12 +332,102 @@ async function fetchFallback(dates) {
   };
 }
 
+// ─── PUZZLE SUMMARY — dynamic, editorial, crawlable ───────────────────────────
+// Generates 3 substantive sentences about this puzzle for Google to crawl.
+// References real words, difficulty context, and internal links.
+function buildPuzzleSummary(friendly, totalWords, maxScore, geniusScore, centerLetter, allLetters, words, pangrams, primaryPangram, slug) {
+  // Difficulty bracket — Spelling Bee average is ~30–40 words, max score ~120–180
+  let difficultyAdj;
+  let difficultyNote;
+  if (totalWords <= 28) {
+    difficultyAdj = 'one of the harder';
+    difficultyNote = `With only ${totalWords} valid words, this puzzle had a smaller word pool than average, which often makes it trickier to reach Genius.`;
+  } else if (totalWords <= 38) {
+    difficultyAdj = 'a moderately challenging';
+    difficultyNote = `With ${totalWords} valid words, this puzzle sat close to the typical range, rewarding players who systematically worked through every letter combination.`;
+  } else if (totalWords <= 50) {
+    difficultyAdj = 'a generous';
+    difficultyNote = `With ${totalWords} valid words, this puzzle offered more paths to Genius than most, though finding every word still required broad vocabulary coverage.`;
+  } else {
+    difficultyAdj = 'one of the more word-rich';
+    difficultyNote = `With ${totalWords} valid words, this was an unusually large puzzle — patient, systematic solvers had plenty of material to work with.`;
+  }
+
+  // Find the longest non-pangram word for the body copy reference
+  const nonPangrams = words.filter(w => !pangrams.includes(w));
+  const longestNonPangram = nonPangrams.sort((a, b) => b.length - a.length)[0] || '';
+  const outerLetters = allLetters.filter(l => l !== centerLetter).join(', ').toUpperCase();
+
+  // Sentence 1: date + word count + difficulty + center letter context
+  const s1 = `The NYT Spelling Bee for ${friendly} was ${difficultyAdj} puzzle, with ${totalWords} valid words built entirely around the center letter <strong>${centerLetter.toUpperCase()}</strong> \u2014 which must appear in every answer.`;
+
+  // Sentence 2: difficulty detail + word distribution note + internal link to archive
+  const s2 = `${difficultyNote} The outer letters were <strong>${outerLetters}</strong>, and the longest non-pangram word was <strong>${longestNonPangram}</strong> \u2014 worth ${longestNonPangram.length} points. Reaching Genius required ${geniusScore} points out of a possible ${maxScore}; see how this compares in the <a href="/answers.html" class="body-link">full answers archive</a>.`;
+
+  // Sentence 3: pangram callout + vocabulary tip + internal link to gear
+  const pangramPts = primaryPangram.length + 7;
+  const s3 = `The pangram <strong>${primaryPangram}</strong> used all 7 letters and was worth ${pangramPts} points \u2014 the single highest-scoring word in the puzzle. Players who consistently find pangrams like this tend to have deep familiarity with Latin and Greek word roots; the <a href="/gear.html" class="body-link">vocabulary books on our Books &amp; Gear page</a> are specifically chosen to build that foundation.`;
+
+  return `<div class="puzzle-summary"><p>${s1}</p><p>${s2}</p><p>${s3}</p></div>`;
+}
+
+// ─── CTA COPY — dynamic per puzzle, pulls real words ──────────────────────────
+function buildCtaCopy(words, pangrams, primaryPangram, allLetters) {
+  // Pick the two longest non-pangram words for the CTA copy
+  const nonPangrams = words
+    .filter(w => !pangrams.includes(w))
+    .sort((a, b) => b.length - a.length);
+  const word1 = nonPangrams[0] || primaryPangram;
+  const word2 = nonPangrams[1] || '';
+  const wordRef = word2
+    ? `find <strong>${word1}</strong> and <strong>${word2}</strong>`
+    : `find <strong>${word1}</strong>`;
+  return `The players who ${wordRef} consistently know their Latin and Greek roots. These books teach the exact system that unlocks words like <strong>${primaryPangram}</strong> before you ever see the puzzle.`;
+}
+
+// ─── FAQ ANSWERS — substantive, feature-snippet eligible ──────────────────────
+function buildFaqAnswers(friendly, totalWords, maxScore, geniusScore, centerLetter, allLetters, pangrams, primaryPangram, words) {
+  const outerLetters = allLetters.filter(l => l !== centerLetter).join(', ').toUpperCase();
+  const pangramPts = primaryPangram ? primaryPangram.length + 7 : 0;
+  const extraPangramNote = pangrams.length > 1
+    ? ` There ${pangrams.length === 2 ? 'was' : 'were'} also ${pangrams.length - 1} additional pangram${pangrams.length > 2 ? 's' : ''}: ${pangrams.slice(1).join(', ')}.`
+    : '';
+
+  // Word count bracket context
+  let countContext;
+  if (totalWords <= 28) countContext = 'below average (most puzzles have 30\u201345 valid words), making this a tougher-than-typical solve';
+  else if (totalWords <= 45) countContext = 'within the typical range for NYT Spelling Bee puzzles';
+  else countContext = 'above average, giving solvers more paths to reach Genius than most puzzles offer';
+
+  // Points ladder — NYT uses: Beginner 0%, Good Start ~2%, Moving Up ~5%, Good ~8%, Solid ~15%, Nice ~25%, Great ~40%, Amazing ~50%, Genius 70%, QB 100%
+  const beginner = Math.ceil(maxScore * 0.02);
+  const amazing  = Math.ceil(maxScore * 0.50);
+  const qbNote   = `Queen Bee requires finding all ${totalWords} words for the maximum ${maxScore} points.`;
+
+  // Longest word for context
+  const longestWord = words.sort((a, b) => b.length - a.length)[0] || '';
+  const longestPts  = longestWord ? wordPoints(longestWord, allLetters).pts : 0;
+
+  const a1 = `The NYT Spelling Bee for ${friendly} had ${totalWords} valid words, ${countContext}. The center letter was ${centerLetter.toUpperCase()}, the pangram was ${primaryPangram} (worth ${pangramPts} points), and the maximum score was ${maxScore} points. Genius required ${geniusScore} points. The longest word was ${longestWord} at ${longestPts} points.${extraPangramNote}`;
+
+  const a2 = `The pangram for ${friendly} was ${primaryPangram}. A pangram uses all 7 letters of the puzzle at least once \u2014 in this case ${allLetters.join(', ').toUpperCase()} \u2014 and earns a 7-point bonus on top of its length score, making ${primaryPangram} worth ${pangramPts} points total. Finding the pangram is the fastest way to jump from Amazing to Genius in a single word.${extraPangramNote}`;
+
+  const a3 = `The ${friendly} Spelling Bee had ${totalWords} valid words, which is ${countContext}. The word list ranged from 4-letter words worth 1 point each to ${longestWord.length}-letter words. All ${totalWords} words contain the center letter ${centerLetter.toUpperCase()} and use only the 7 letters ${allLetters.join(', ').toUpperCase()}. Words must be at least 4 letters long and may reuse any letter.`;
+
+  const a4 = `The Genius threshold for ${friendly} was ${geniusScore} points \u2014 exactly 70% of the maximum score of ${maxScore}. The NYT scoring tiers work as follows: Beginner starts at ${beginner} points, Amazing requires roughly ${amazing} points (50% of max), and Genius requires ${geniusScore} points (70% of max). ${qbNote} Most competitive solvers aim for Genius; Queen Bee is reserved for completionists.`;
+
+  const a5 = `The 7 letters for the ${friendly} Spelling Bee were ${allLetters.join(', ').toUpperCase()}. The center letter \u2014 ${centerLetter.toUpperCase()} \u2014 must appear in every valid word. The outer letters were ${outerLetters}. Every valid word must be at least 4 letters, use only these 7 letters (repeats allowed), and appear in a standard dictionary. Proper nouns, hyphenated words, and obscure terms are excluded.`;
+
+  return { a1, a2, a3, a4, a5 };
+}
+
 function generateHtml(dates, answers) {
   const { friendly, month, day, year, slug, iso } = dates;
   const { centerLetter, allLetters, words, pangrams, maxScore, geniusScore, totalWords } = answers;
   const primaryPangram = pangrams[0] || '';
   const extraPangrams = pangrams.slice(1);
 
+  // ── Word chip sections ─────────────────────────────────────────────────────
   const byLen = {};
   words.forEach(word => {
     const { pts, isPangram } = wordPoints(word, allLetters.length ? allLetters : []);
@@ -349,7 +439,9 @@ function generateHtml(dates, answers) {
   const wordSections = lengths.map(len => {
     const chips = byLen[len].map(({word, pts, isPangram}) => {
       const chipClass = isPangram ? 'wchip pangram' : (pts >= 8 ? 'wchip hi-val' : 'wchip');
-      const highlighted = [...word].map(ch => ch === centerLetter ? `<span class="center-ltr">${ch}</span>` : ch).join('');
+      const highlighted = [...word].map(ch => ch === centerLetter
+        ? `<span class="center-ltr">${ch}</span>`
+        : ch).join('');
       return `<div class="${chipClass}"><span>${highlighted}</span>${isPangram ? ' \u2605' : ''} <span class="wpts">${pts}</span></div>`;
     }).join('\n            ');
     return `
@@ -359,33 +451,104 @@ function generateHtml(dates, answers) {
           </div>`;
   }).join('\n');
 
+  // ── Prev date slug ─────────────────────────────────────────────────────────
   const prevDate = new Date(iso);
   prevDate.setDate(prevDate.getDate() - 1);
   const prevMonth = prevDate.toLocaleString('default',{month:'long'}).toLowerCase();
-  const prevDay = String(prevDate.getDate()).padStart(2,'0');
-  const prevYear = prevDate.getFullYear();
-  const prevSlug = `spelling-bee-${prevMonth}-${prevDay}-${prevYear}`;
+  const prevDay   = String(prevDate.getDate()).padStart(2,'0');
+  const prevYear  = prevDate.getFullYear();
+  const prevSlug  = `spelling-bee-${prevMonth}-${prevDay}-${prevYear}`;
 
-  const metaDesc = `All ${totalWords} NYT Spelling Bee answers for ${friendly}. Center letter ${centerLetter}, pangram: ${primaryPangram}. Full word list with point values. Free, no login.`;
+  // ── Meta ───────────────────────────────────────────────────────────────────
+  // Title: lead with pangram for maximum SERP differentiation
+  // Target ~65 chars. "June 13, 2026 Spelling Bee: Pangram TALKATIVE + 39 Words | SpellingBeeFinder" = 77 — trim
+  // "June 13, 2026 Spelling Bee Answers — Pangram TALKATIVE | SpellingBeeFinder" = 73 — good
+  const pageTitle = `${friendly} Spelling Bee Answers \u2014 Pangram ${primaryPangram} | SpellingBeeFinder`;
+  const metaDesc  = `NYT Spelling Bee ${friendly}: pangram is ${primaryPangram} (${primaryPangram.length + 7} pts). All ${totalWords} answers with point values, center letter ${centerLetter.toUpperCase()}, Genius score ${geniusScore}. Free, no login.`;
 
+  // ── Puzzle summary block ───────────────────────────────────────────────────
+  const puzzleSummary = buildPuzzleSummary(
+    friendly, totalWords, maxScore, geniusScore,
+    centerLetter, allLetters, words, pangrams, primaryPangram, slug
+  );
+
+  // ── CTA copy ───────────────────────────────────────────────────────────────
+  const ctaCopy = buildCtaCopy(words, pangrams, primaryPangram, allLetters);
+
+  // ── FAQ answers ────────────────────────────────────────────────────────────
+  const { a1, a2, a3, a4, a5 } = buildFaqAnswers(
+    friendly, totalWords, maxScore, geniusScore,
+    centerLetter, allLetters, pangrams, primaryPangram, words
+  );
+
+  // ── JSON-LD — must match FAQ answer text exactly ───────────────────────────
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": `Spelling Bee ${friendly} Answers`,
+        "datePublished": iso,
+        "dateModified": iso,
+        "author": { "@type": "Organization", "name": "SpellingBeeFinder" },
+        "publisher": { "@type": "Organization", "name": "SpellingBeeFinder", "url": "https://www.spellingbeefinder.com" },
+        "description": metaDesc
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": `What is the Spelling Bee answer for ${friendly}?`,
+            "acceptedAnswer": { "@type": "Answer", "text": a1.replace(/<[^>]+>/g,'') }
+          },
+          {
+            "@type": "Question",
+            "name": `What is the Spelling Bee pangram for ${friendly}?`,
+            "acceptedAnswer": { "@type": "Answer", "text": a2.replace(/<[^>]+>/g,'') }
+          },
+          {
+            "@type": "Question",
+            "name": `How many words in Spelling Bee ${friendly}?`,
+            "acceptedAnswer": { "@type": "Answer", "text": a3.replace(/<[^>]+>/g,'') }
+          },
+          {
+            "@type": "Question",
+            "name": `What is the Genius score for Spelling Bee ${friendly}?`,
+            "acceptedAnswer": { "@type": "Answer", "text": a4.replace(/<[^>]+>/g,'') }
+          },
+          {
+            "@type": "Question",
+            "name": `What letters are in Spelling Bee ${friendly}?`,
+            "acceptedAnswer": { "@type": "Answer", "text": a5.replace(/<[^>]+>/g,'') }
+          }
+        ]
+      }
+    ]
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HTML TEMPLATE
+  // ═══════════════════════════════════════════════════════════════════════════
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Spelling Bee ${friendly} Answers &mdash; All ${totalWords} Words | SpellingBeeFinder</title>
+<meta name="color-scheme" content="light">
+<title>${pageTitle}</title>
 <meta name="description" content="${metaDesc}">
-<meta name="keywords" content="spelling bee ${month.toLowerCase()} ${day} ${year} answers, nyt spelling bee ${month.toLowerCase()} ${day} answers, spelling bee answers today, spelling bee ${month.toLowerCase()} ${day} pangram, spelling bee ${centerLetter.toLowerCase()} center, spelling bee pangram today, nyt spelling bee answers ${year}">
+<meta name="keywords" content="spelling bee ${month.toLowerCase()} ${day} ${year} answers, nyt spelling bee ${month.toLowerCase()} ${day} answers, spelling bee answers today, spelling bee ${month.toLowerCase()} ${day} pangram ${primaryPangram.toLowerCase()}, spelling bee ${centerLetter.toLowerCase()} center letter, nyt spelling bee answers ${year}">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.spellingbeefinder.com/answers/${slug}.html">
-<meta property="og:title" content="Spelling Bee ${friendly} Answers &mdash; All ${totalWords} Words">
+<meta property="og:title" content="${pageTitle}">
 <meta property="og:description" content="${metaDesc}">
 <meta property="og:url" content="https://www.spellingbeefinder.com/answers/${slug}.html">
-<meta property="og:type" content="website">
+<meta property="og:type" content="article">
 <meta property="og:image" content="https://www.spellingbeefinder.com/icon-512.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Spelling Bee ${friendly} Answers &mdash; All ${totalWords} Words">
-<meta name="twitter:description" content="All ${totalWords} NYT Spelling Bee answers for ${friendly}. Pangram: ${primaryPangram}. Free, no login.">
+<meta name="twitter:title" content="${pageTitle}">
+<meta name="twitter:description" content="${metaDesc}">
 <meta name="theme-color" content="#f59e0b">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
@@ -396,7 +559,7 @@ function generateHtml(dates, answers) {
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4943534579898039" crossorigin="anonymous"></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Spelling Bee ${friendly} Answers","datePublished":"${iso}","dateModified":"${iso}","author":{"@type":"Organization","name":"SpellingBeeFinder"},"publisher":{"@type":"Organization","name":"SpellingBeeFinder","url":"https://www.spellingbeefinder.com"},"description":"${metaDesc}"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the Spelling Bee answer for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. The center letter is ${centerLetter} and the pangram is ${primaryPangram}. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points."}},{"@type":"Question","name":"What is the Spelling Bee pangram for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The pangram for ${friendly} is ${primaryPangram}. It uses all 7 letters at least once and is worth ${primaryPangram.length + 7} points total."}},{"@type":"Question","name":"How many words in Spelling Bee ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. Maximum score is ${maxScore} points and Genius requires ${geniusScore} points. Center letter is ${centerLetter}."}},{"@type":"Question","name":"What is the Genius score for ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The Genius threshold for ${friendly} is ${geniusScore} points, which is 70% of the maximum ${maxScore}. Queen Bee requires all ${totalWords} words for the full ${maxScore} points."}},{"@type":"Question","name":"What are the letters in Spelling Bee ${friendly}?","acceptedAnswer":{"@type":"Answer","text":"The letters for ${friendly} are ${allLetters.join(', ')}. Center letter is ${centerLetter} which must appear in every valid word."}}]}]}
+${jsonLd}
 </script>
 <style>
 /* ===== VARIABLES ===== */
@@ -424,7 +587,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 /* ===== PAGE ===== */
 .page{max-width:860px;margin:0 auto;padding:36px 24px 80px;}
 
-/* ===== BREADCRUMB — FIX: trailing noun "Answers" added ===== */
+/* ===== BREADCRUMB ===== */
 .breadcrumb{font-size:13px;color:var(--s500);margin-bottom:24px;}
 .breadcrumb a{color:var(--s500);text-decoration:none;}
 .breadcrumb a:hover{color:var(--amber);}
@@ -438,14 +601,14 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .date-hero-text h1{font-family:'Bebas Neue',serif;font-size:clamp(24px,4vw,40px);letter-spacing:1.5px;color:var(--s900);line-height:1.05;margin-bottom:6px;}
 .date-hero-text p{font-size:15px;color:var(--s600);line-height:1.6;}
 
-/* ===== STATS — FIX: unified single card with internal dividers ===== */
+/* ===== STATS — unified single card with internal dividers ===== */
 .stats-unified{background:var(--wh);border:1.5px solid var(--cream-border);border-radius:14px;display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:28px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
 .stat-cell{padding:16px 10px;text-align:center;position:relative;}
 .stat-cell+.stat-cell::before{content:'';position:absolute;left:0;top:16px;bottom:16px;width:1px;background:var(--cream-border);}
 .stat-val{font-family:'Bebas Neue',serif;font-size:32px;color:var(--bee);line-height:1;}
 .stat-lbl{font-size:11px;color:var(--s500);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
 
-/* ===== PANGRAM CARD — dark hero, white text, impossible to miss ===== */
+/* ===== PANGRAM CARD ===== */
 .pangram-card{background:linear-gradient(135deg,#0f172a,#1e293b);border:none;border-radius:16px;padding:24px 28px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);}
 .pangram-card::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(245,158,11,.08);border-radius:50%;}
 .pangram-card::after{content:'';position:absolute;bottom:-40px;left:10%;width:100px;height:100px;background:rgba(245,158,11,.05);border-radius:50%;}
@@ -454,7 +617,15 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .pangram-info{font-size:14px;color:rgba(255,255,255,.7);position:relative;z-index:1;}
 .pangram-extra{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px;position:relative;z-index:1;}
 
-/* ===== SECTION HEADER — FIX: amber underline treatment ===== */
+/* ===== PUZZLE SUMMARY ===== */
+.puzzle-summary{background:var(--wh);border:1.5px solid var(--s200);border-radius:14px;padding:22px 26px;margin-bottom:28px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.puzzle-summary p{font-size:15px;color:var(--s700);line-height:1.75;margin-bottom:14px;}
+.puzzle-summary p:last-child{margin-bottom:0;}
+.puzzle-summary strong{color:var(--s900);font-weight:700;}
+.body-link{color:var(--amber);text-decoration:underline;text-underline-offset:2px;font-weight:600;}
+.body-link:hover{color:#92400e;}
+
+/* ===== SECTION HEADER — amber gradient underline ===== */
 .section-title{font-family:'Bebas Neue',serif;font-size:clamp(20px,3vw,26px);letter-spacing:1.5px;color:var(--s900);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(to right,var(--cream-border),transparent);}
 
@@ -467,12 +638,12 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .length-label{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;letter-spacing:1px;color:#b45309;text-transform:uppercase;background:#fffbeb;border:1.5px solid #f59e0b;padding:4px 12px;border-radius:6px;display:inline-block;margin-bottom:10px;}
 .word-grid{display:flex;flex-wrap:wrap;gap:7px;}
 
-/* ===== WORD CHIPS — FIX: center letter amber #b45309, chip hierarchy by points ===== */
+/* ===== WORD CHIPS ===== */
 .wchip{padding:7px 13px;border:1px solid var(--s200);border-radius:9px;background:var(--wh);font-size:14px;font-weight:600;color:var(--s700);display:flex;align-items:center;gap:6px;transition:box-shadow .12s;}
 .wchip:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);}
 .wchip.pangram{background:#fef3c7;border-color:var(--bee);color:#92400e;box-shadow:0 1px 4px rgba(245,158,11,.2);}
 .wchip.hi-val{border-color:#c7d2fe;background:#eef2ff;}
-/* center letter: bright bee amber on white chips, pops at scroll speed */
+/* center letter colors: bright on white, dark on pangram, indigo on hi-val */
 .center-ltr{color:#d97706;font-weight:900;}
 .wchip.pangram .center-ltr{color:#92400e;}
 .wchip.hi-val .center-ltr{color:#4338ca;}
@@ -481,23 +652,24 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .wchip.hi-val .wpts{color:#3730a3;background:#e0e7ff;}
 .word-fade-overlay{height:36px;margin-top:-36px;margin-bottom:12px;background:linear-gradient(to top,#f1f5f9 30%,transparent);pointer-events:none;position:relative;z-index:1;}
 
-/* ===== PREV/NEXT NAV (desktop) ===== */
+/* ===== PREV/NEXT NAV (desktop only — hidden on mobile by @media below) ===== */
 .nav-dates{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:12px;}
 .nav-date-btn{flex:1;padding:11px 16px;background:var(--wh);border:1.5px solid var(--s200);border-radius:11px;text-decoration:none;font-size:14px;font-weight:600;color:var(--s700);text-align:center;transition:all .15s;}
 .nav-date-btn:hover{border-color:var(--bee);color:var(--amber);}
 .nav-date-btn.today{background:var(--bee);border-color:var(--bee);color:#fff;}
 
-/* ===== MOBILE NAV BAR ===== */
+/* ===== MOBILE NAV BAR (sticky bottom — mobile only) ===== */
 .mobile-nav-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:3px solid var(--cream-border);padding:10px 12px 16px;gap:8px;}
 .mobile-nav-bar a{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 8px;border-radius:12px;font-family:'Bebas Neue',serif;font-size:18px;letter-spacing:1.5px;text-decoration:none;transition:all .15s;}
 .mnb-prev,.mnb-next{background:var(--s100);color:var(--s800);border:2px solid var(--s200);}
 .mnb-archive{background:var(--bee);color:#fff;border:2px solid var(--bee);flex:1.5;box-shadow:0 2px 12px rgba(245,158,11,.35);}
 .mnb-prev:hover,.mnb-next:hover{border-color:var(--bee);color:var(--amber);background:#fef3c7;}
 
-/* ===== AFFILIATE BRIDGE — FIX: forest green, not amber ===== */
+/* ===== CTA — affiliate bridge ===== */
 .cta-card{background:linear-gradient(135deg,#065f46,#059669);border-radius:14px;padding:24px 28px;margin:32px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-.cta-card h3{font-family:'Bebas Neue',serif;font-size:24px;letter-spacing:1px;color:#fff;margin-bottom:4px;}
-.cta-card p{font-size:14px;color:rgba(255,255,255,.88);}
+.cta-card h3{font-family:'Bebas Neue',serif;font-size:24px;letter-spacing:1px;color:#fff;margin-bottom:6px;}
+.cta-card p{font-size:14px;color:rgba(255,255,255,.88);line-height:1.6;}
+.cta-card strong{color:#fff;font-weight:700;}
 .cta-btn{background:#fff;color:#065f46;font-family:'Bebas Neue',serif;font-size:17px;letter-spacing:1px;padding:12px 22px;border-radius:10px;text-decoration:none;white-space:nowrap;flex-shrink:0;font-weight:700;}
 .cta-btn:hover{background:#f0fdf4;}
 
@@ -510,20 +682,20 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .faq-a{font-size:15px;color:var(--s600);line-height:1.75;margin-top:10px;padding-right:20px;display:none;}
 .faq-a.open{display:block;}
 
-/* ===== ADS ===== */
+/* ===== ADS — label collapses with slot when unfilled ===== */
 .ad-wrap{margin:32px 0;text-align:center;overflow:hidden;min-height:0;}
 .ad-slot-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--s500);margin-bottom:4px;letter-spacing:.5px;text-transform:uppercase;}
 ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
+/* Collapse the label when the ad is unfilled — :has() support is 93%+ globally */
+.ad-wrap:has(ins[data-ad-status="unfilled"]) .ad-slot-label{display:none!important;}
 
-/* ===== SHARE BOX — FIX: green gradient matching master standards ===== */
-.share-strip{margin:36px 0 16px;padding:32px 28px;background:linear-gradient(135deg,#065f46,#059669);border-radius:16px;position:relative;overflow:hidden;}
-.share-strip::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.06);border-radius:50%;}
-.share-strip::after{content:'';position:absolute;bottom:-30px;left:20%;width:100px;height:100px;background:rgba(255,255,255,.04);border-radius:50%;}
-.share-strip-lbl{font-family:'Bebas Neue',serif;font-size:26px;letter-spacing:1px;color:#fff;margin-bottom:4px;display:block;position:relative;z-index:1;}
-.share-strip-sub{font-size:14px;color:rgba(255,255,255,.82);margin-bottom:20px;display:block;position:relative;z-index:1;}
-.share-btns{display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:nowrap;position:relative;z-index:1;}
+/* ===== SHARE BOX — white card, 7 circle buttons, centered, NO gradient, NO QR ===== */
+.share-strip{margin:36px 0 16px;padding:32px 28px;background:#ffffff;border:1.5px solid var(--s200);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center;}
+.share-strip-lbl{font-family:'Bebas Neue',serif;font-size:26px;letter-spacing:1px;color:var(--s900);margin-bottom:4px;display:block;}
+.share-strip-sub{font-size:14px;color:var(--s600);margin-bottom:20px;display:block;}
+.share-btns{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;}
 .sbn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:transform .12s,box-shadow .12s;border:none;flex-shrink:0;color:#fff;}
-.sbn:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(0,0,0,.25);}
+.sbn:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(0,0,0,.2);}
 .sbn-native{background:#f59e0b;}
 .sbn-copy{background:#475569;}
 .sbn-fb{background:#1877f2;}
@@ -541,9 +713,10 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
 .foot-col a:hover{color:#0f172a;}
 .foot-col p{font-size:14px;color:#475569;line-height:1.6;margin:0;}
 .foot-bottom{max-width:1100px;margin:0 auto;padding:16px 0 0;border-top:1px solid #e2e8f0;font-size:14px;color:#475569;line-height:1.6;}
-.foot-bottom a{color:#64748b;}
+/* Full Disclosure link — amber + underline for visibility and FTC compliance */
+.foot-bottom a{color:#b45309;text-decoration:underline;text-underline-offset:2px;}
 .foot-brand-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
-.foot-brand-hex{display:flex;align-items:center;justify-content:flex-shrink:0;}
+.foot-brand-hex{display:flex;align-items:center;flex-shrink:0;}
 .foot-brand-name{font-family:'Bebas Neue',serif;font-size:19px;letter-spacing:2px;color:#0f172a;}
 .foot-brand-name em{color:var(--amber);font-style:normal;}
 
@@ -561,17 +734,21 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   .nav-links a{font-size:14px;padding:11px 14px;border-radius:9px;color:var(--s800);}
   .stats-unified{grid-template-columns:1fr 1fr;}
   .cta-card{flex-direction:column;}
-  .share-strip{padding:24px 20px;}
-  .share-btns{gap:8px;flex-wrap:wrap;}
+  /* Share: allow wrap on very small screens, keep centered */
+  .share-btns{gap:8px;flex-wrap:wrap;justify-content:center;}
   .sbn{width:40px;height:40px;}
   .word-grid{gap:6px;}
+  /* Mobile nav bar ON — inline desktop nav OFF */
   .mobile-nav-bar{display:flex;}
+  .nav-dates{display:none;}
   body{padding-bottom:80px;}
   .pangram-word{font-size:clamp(32px,8vw,46px);}
   /* Remove nested scroll on mobile — fully expand word list */
   .word-sections{max-height:none;overflow-y:visible;padding-bottom:8px;}
   .word-fade-overlay{display:none;}
-  .share-qr{display:none;}
+  /* Puzzle summary tweaks */
+  .puzzle-summary{padding:18px 16px;}
+  .puzzle-summary p{font-size:14px;}
 }
 @media(max-width:400px){
   .share-btns{gap:6px;}
@@ -606,22 +783,22 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
     </div>
     <div class="date-hero-text">
       <h1>Spelling Bee ${friendly} Answers</h1>
-      <p>All ${totalWords} valid words for the NYT Spelling Bee. Center letter: <strong>${centerLetter}</strong>.</p>
+      <p>All ${totalWords} valid words for the NYT Spelling Bee. Center letter: <strong>${centerLetter.toUpperCase()}</strong>.</p>
     </div>
   </div>
   <div class="stats-unified">
     <div class="stat-cell"><div class="stat-val">${totalWords}</div><div class="stat-lbl">Total Words</div></div>
     <div class="stat-cell"><div class="stat-val">${maxScore}</div><div class="stat-lbl">Max Points</div></div>
     <div class="stat-cell"><div class="stat-val">${geniusScore}</div><div class="stat-lbl">Genius Score</div></div>
-    <div class="stat-cell"><div class="stat-val">${centerLetter}</div><div class="stat-lbl">Center Letter</div></div>
+    <div class="stat-cell"><div class="stat-val">${centerLetter.toUpperCase()}</div><div class="stat-lbl">Center Letter</div></div>
   </div>
-  ${primaryPangram ?
-`  <div class="pangram-card">
+${primaryPangram ? `  <div class="pangram-card">
     <div class="pangram-label">\u2b50 Today&rsquo;s Pangram</div>
     <div class="pangram-word">${primaryPangram}</div>
     <div class="pangram-info">Uses all 7 letters &mdash; worth ${primaryPangram.length + 7} points</div>
     ${extraPangrams.length ? `<div class="pangram-extra">Also: ${extraPangrams.join(', ')}</div>` : ''}
   </div>` : ''}
+  ${puzzleSummary}
   <div class="ad-wrap">
     <div class="ad-slot-label">Advertisement</div>
     <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4943534579898039" data-ad-slot="9513724631" data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -633,7 +810,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   <div class="cta-card">
     <div>
       <h3>Miss Words Like These Every Week?</h3>
-      <p>The players who find ALLEVIATE and TITILLATE consistently study Latin and Greek roots. These books teach the system.</p>
+      <p>${ctaCopy}</p>
     </div>
     <a href="/gear.html" class="cta-btn">See the Books &rarr;</a>
   </div>
@@ -649,11 +826,26 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   </div>
   <div class="faq-section">
     <h2 class="section-title">Frequently Asked Questions</h2>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Spelling Bee answer for ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. The center letter is ${centerLetter} and the pangram is ${primaryPangram}. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Spelling Bee pangram for ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">The pangram for ${friendly} is ${primaryPangram}. It uses all 7 letters at least once and is worth ${primaryPangram.length + 7} points (${primaryPangram.length} for length plus 7 pangram bonus).</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">How many words in Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">The NYT Spelling Bee for ${friendly} has ${totalWords} valid words. Maximum score is ${maxScore} points. Genius requires ${geniusScore} points. Center letter is ${centerLetter}.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Genius score for Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">Genius threshold for ${friendly} is ${geniusScore} points (70% of max ${maxScore}). Queen Bee requires all ${totalWords} words for the full ${maxScore} points.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What letters are in Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button><div class="faq-a">The letters for ${friendly} are ${allLetters.join(', ')}. Center letter is ${centerLetter} which must appear in every valid word. Words must be at least 4 letters and can reuse letters freely.</div></div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Spelling Bee answer for ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button>
+      <div class="faq-a">${a1}</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Spelling Bee pangram for ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button>
+      <div class="faq-a">${a2}</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="tFaq(this)" aria-expanded="false">How many words in Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button>
+      <div class="faq-a">${a3}</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What is the Genius score for Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button>
+      <div class="faq-a">${a4}</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What letters are in Spelling Bee ${friendly}?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg></button>
+      <div class="faq-a">${a5}</div>
+    </div>
   </div>
   <div class="share-strip" aria-label="Share this page">
     <span class="share-strip-lbl">Share These Answers</span>
@@ -666,10 +858,6 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
       <a class="sbn sbn-li" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html" target="_blank" rel="noopener" aria-label="LinkedIn"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
       <a class="sbn sbn-wa" href="https://api.whatsapp.com/send?text=Spelling%20Bee%20${friendly.replace(/ /g,'%20')}%20Answers%20https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg></a>
       <a class="sbn sbn-em" href="mailto:?subject=Spelling%20Bee%20${friendly.replace(/ /g,'%20')}%20Answers&body=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html" aria-label="Email"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></a>
-    </div>
-    <div class="share-qr" style="margin-top:20px;display:flex;align-items:center;gap:14px;position:relative;z-index:1;">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fwww.spellingbeefinder.com%2Fanswers%2F${slug}.html&color=000000&bgcolor=ffffff" alt="QR code for Spelling Bee ${friendly} answers page" width="80" height="80" loading="lazy" style="border-radius:8px;background:#fff;padding:4px;display:block;">
-      <span style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.4;">Scan to share<br>on your phone</span>
     </div>
   </div>
 </div>
@@ -749,7 +937,7 @@ async function main() {
   } catch (err) {
     console.error(`nytbee.com failed after retries: ${err.message}`);
     if (isOverride) {
-      console.error('Date override was given — refusing to use the today-only fallback scraper, since it would write the WRONG date\'s data under this filename. Failing job for manual review.');
+      console.error('Date override was given -- refusing to use the today-only fallback scraper, since it would write the WRONG date\'s data under this filename. Failing job for manual review.');
       process.exit(1);
     }
     try {
