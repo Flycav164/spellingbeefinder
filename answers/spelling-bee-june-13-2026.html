@@ -95,14 +95,16 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .section-title{font-family:'Bebas Neue',serif;font-size:clamp(20px,3vw,26px);letter-spacing:1.5px;color:var(--s900);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(to right,var(--cream-border),transparent);}
 
-/* ===== WORD SECTIONS — scrollable desktop, fully expanded mobile ===== */
-.word-sections{margin-bottom:8px;max-height:480px;overflow-y:auto;padding:0 4px 32px;scrollbar-width:thin;scrollbar-color:var(--cream-border) transparent;position:relative;}
-.word-sections::-webkit-scrollbar{width:4px;}
-.word-sections::-webkit-scrollbar-track{background:transparent;}
+/* ===== WORD SECTIONS — framed scrollable container matching index.html ===== */
+.word-sections-frame{background:var(--wh);border:1.5px solid var(--s200);border-radius:14px;overflow:hidden;margin-bottom:28px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.word-sections{max-height:460px;overflow-y:auto;padding:16px 16px 24px;scrollbar-width:thin;scrollbar-color:var(--cream-border) transparent;position:relative;}
+.word-sections::-webkit-scrollbar{width:5px;}
+.word-sections::-webkit-scrollbar-track{background:var(--s100);}
 .word-sections::-webkit-scrollbar-thumb{background:var(--cream-border);border-radius:4px;}
 .length-group{margin-bottom:20px;}
 .length-label{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;letter-spacing:1px;color:#b45309;text-transform:uppercase;background:#fffbeb;border:1.5px solid #f59e0b;padding:4px 12px;border-radius:6px;display:inline-block;margin-bottom:10px;}
 .word-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.word-scroll-hint{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;background:var(--s50);border-top:1px solid var(--s200);font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--s500);letter-spacing:.8px;text-transform:uppercase;}
 
 /* ===== WORD CHIPS ===== */
 .wchip{padding:7px 13px;border:1px solid var(--s200);border-radius:9px;background:var(--wh);font-size:14px;font-weight:600;color:var(--s700);display:flex;align-items:center;gap:6px;transition:box-shadow .12s;}
@@ -116,7 +118,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .wpts{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:#92400e;background:#fde68a;border-radius:4px;padding:1px 5px;}
 .wchip.pangram .wpts{color:#fff;background:#b45309;}
 .wchip.hi-val .wpts{color:#3730a3;background:#e0e7ff;}
-.word-fade-overlay{height:36px;margin-top:-36px;margin-bottom:12px;background:linear-gradient(to top,#f1f5f9 30%,transparent);pointer-events:none;position:relative;z-index:1;}
+.word-fade-overlay{height:48px;margin-top:-48px;background:linear-gradient(to top,rgba(255,255,255,.98) 20%,transparent);pointer-events:none;position:relative;z-index:1;}
 
 /* ===== PREV/NEXT NAV (desktop only — hidden on mobile by @media below) ===== */
 .nav-dates{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:12px;}
@@ -210,9 +212,9 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   .nav-dates{display:none;}
   body{padding-bottom:96px;}
   .pangram-word{font-size:clamp(48px,12vw,72px);}
-  /* Remove nested scroll on mobile — fully expand word list */
-  .word-sections{max-height:none;overflow-y:visible;padding-bottom:8px;}
-  .word-fade-overlay{display:none;}
+  /* Mobile word frame — constrained scroll matching index.html */
+  .word-sections-frame{border-radius:12px;}
+  .word-sections{max-height:400px;padding:12px 12px 20px;}
   /* Puzzle summary tweaks */
   .puzzle-summary{padding:20px 18px;}
   .puzzle-summary p{font-size:14px;}
@@ -272,7 +274,8 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>
   <h2 class="section-title">All 39 Words &mdash; Sorted by Length</h2>
-  <div class="word-sections">
+  <div class="word-sections-frame">
+    <div class="word-sections" id="wordScrollBox">
           <div class="length-group">
             <div class="length-label">9 Letters</div>
             <div class="word-grid"><div class="wchip hi-val"><span>ALLEV<span class="center-ltr">I</span>ATE</span> <span class="wpts">9</span></div>
@@ -335,7 +338,12 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
             <div class="wchip"><span>V<span class="center-ltr">I</span>AL</span> <span class="wpts">1</span></div>
             <div class="wchip"><span>V<span class="center-ltr">I</span>LE</span> <span class="wpts">1</span></div></div>
           </div></div>
-  <div class="word-fade-overlay"></div>
+    <div class="word-fade-overlay" id="wordFadeOverlay"></div>
+    <div class="word-scroll-hint" id="wordScrollHint">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg>
+      Scroll to see all 39 words
+    </div>
+  </div>
   <div class="cta-card">
     <div>
       <h3>Miss Words Like These Every Week?</h3>
@@ -430,6 +438,19 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
 <script>
 function tFaq(btn){var a=btn.nextElementSibling,c=btn.querySelector('.faq-chev');var o=a.classList.contains('open');a.classList.toggle('open',!o);c.classList.toggle('open',!o);btn.setAttribute('aria-expanded',!o);}
 document.getElementById('navHam').addEventListener('click',function(){document.getElementById('navLinks').classList.toggle('open');});
+(function(){
+  var box=document.getElementById('wordScrollBox');
+  var fade=document.getElementById('wordFadeOverlay');
+  var hint=document.getElementById('wordScrollHint');
+  if(!box||!fade||!hint) return;
+  function checkScroll(){
+    var atBottom=(box.scrollTop+box.clientHeight)>=(box.scrollHeight-8);
+    fade.style.display=atBottom?'none':'block';
+    hint.style.display=atBottom?'none':'flex';
+  }
+  box.addEventListener('scroll',checkScroll,{passive:true});
+  checkScroll();
+})();
 (function(){
   var iso='2026-06-13';
   var d=new Date(iso+'T12:00:00');
