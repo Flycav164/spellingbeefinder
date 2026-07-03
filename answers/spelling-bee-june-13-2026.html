@@ -77,13 +77,11 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .stat-lbl{font-size:11px;color:var(--s500);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
 
 /* ===== PANGRAM CARD ===== */
-.pangram-card{background:linear-gradient(135deg,#0f172a,#1e293b);border:none;border-radius:16px;padding:24px 28px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);}
-.pangram-card::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(245,158,11,.08);border-radius:50%;}
-.pangram-card::after{content:'';position:absolute;bottom:-40px;left:10%;width:100px;height:100px;background:rgba(245,158,11,.05);border-radius:50%;}
-.pangram-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;margin-bottom:8px;position:relative;z-index:1;display:flex;align-items:center;gap:6px;}
-.pangram-word{font-family:'Bebas Neue',serif;font-size:clamp(36px,7vw,52px);color:#ffffff;letter-spacing:4px;line-height:1;margin-bottom:8px;position:relative;z-index:1;}
-.pangram-info{font-size:14px;color:rgba(255,255,255,.7);position:relative;z-index:1;}
-.pangram-extra{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px;position:relative;z-index:1;}
+.pangram-card{background:linear-gradient(135deg,#0f172a,#1e293b);border:none;border-radius:16px;padding:32px 24px 28px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:center;}
+.pangram-label{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#f59e0b;margin-bottom:10px;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;}
+.pangram-word{font-family:'Bebas Neue',serif;font-size:clamp(52px,13vw,80px);color:#ffffff;letter-spacing:6px;line-height:1;margin-bottom:12px;position:relative;z-index:1;display:block;width:100%;}
+.pangram-info{font-size:15px;color:rgba(255,255,255,.92);position:relative;z-index:1;}
+.pangram-extra{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px;position:relative;z-index:1;}
 
 /* ===== PUZZLE SUMMARY ===== */
 .puzzle-summary{background:var(--wh);border:1.5px solid var(--s200);border-radius:14px;padding:22px 26px;margin-bottom:28px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
@@ -158,9 +156,9 @@ ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
 .ad-wrap:has(ins[data-ad-status="unfilled"]) .ad-slot-label{display:none!important;}
 
 /* ===== SHARE BOX — white card, 7 circle buttons, centered, NO gradient, NO QR ===== */
-.share-strip{margin:36px 0 16px;padding:32px 28px;background:#ffffff;border:1.5px solid var(--s200);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center;}
-.share-strip-lbl{font-family:'Bebas Neue',serif;font-size:26px;letter-spacing:1px;color:var(--s900);margin-bottom:4px;display:block;}
-.share-strip-sub{font-size:14px;color:var(--s600);margin-bottom:20px;display:block;}
+.share-strip{margin:36px auto 48px;padding:32px 28px;background:#ffffff;border:1.5px solid var(--s200);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center;}
+.share-strip-lbl{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#b45309;margin:0 0 6px;display:block;}
+.share-strip-sub{font-size:14px;color:var(--s600);margin:0 0 18px;line-height:1.5;display:block;text-transform:none;}
 .share-btns{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;}
 .sbn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:transform .12s,box-shadow .12s;border:none;flex-shrink:0;color:#fff;}
 .sbn:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(0,0,0,.2);}
@@ -191,7 +189,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
   body{background:#f1f5f9;}
-  .page{padding:20px 16px 80px;}
+  .page{padding:20px 16px 96px;}
   footer{background:#fff;border-top:2px solid #e2e8f0;padding:28px 16px 20px;margin-top:32px;}
   .foot-inner{flex-direction:column;flex-wrap:wrap;gap:16px;}
   .foot-col{min-width:unset;width:100%;}
@@ -209,8 +207,8 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   /* Mobile nav bar ON — inline desktop nav OFF */
   .mobile-nav-bar{display:flex;}
   .nav-dates{display:none;}
-  body{padding-bottom:80px;}
-  .pangram-word{font-size:clamp(32px,8vw,46px);}
+  body{padding-bottom:96px;}
+  .pangram-word{font-size:clamp(48px,12vw,72px);}
   /* Remove nested scroll on mobile — fully expand word list */
   .word-sections{max-height:none;overflow-y:visible;padding-bottom:8px;}
   .word-fade-overlay{display:none;}
@@ -378,7 +376,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
     </div>
   </div>
   <div class="share-strip" aria-label="Share this page">
-    <span class="share-strip-lbl">Share These Answers</span>
+    <span class="share-strip-lbl">Share This Page</span>
     <span class="share-strip-sub">TALKATIVE stumped a lot of players today. Share before the next puzzle drops.</span>
     <div class="share-btns">
       <button class="sbn sbn-native" onclick="if(navigator.share){navigator.share({title:'Spelling Bee June 13, 2026 Answers',url:'https://www.spellingbeefinder.com/answers/spelling-bee-june-13-2026.html'})}" aria-label="Share"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
@@ -409,6 +407,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
       <h4>Tools</h4>
       <a href="/index.html">Spelling Bee Solver</a>
       <a href="/answers.html">Daily Answers Archive</a>
+      <a href="/index.html">Practice Mode</a>
     </div>
     <div class="foot-col" style="flex:1;min-width:120px;">
       <h4>Resources</h4>
