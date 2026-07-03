@@ -610,7 +610,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 
 /* ===== PANGRAM CARD ===== */
 .pangram-card{background:linear-gradient(135deg,#0f172a,#1e293b);border:none;border-radius:16px;padding:32px 24px 28px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:center;}
-.pangram-label{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#f59e0b;margin-bottom:10px;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;}
+.pangram-label{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#f59e0b;margin-bottom:10px;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:10px;}
 .pangram-word{font-family:'Bebas Neue',serif;font-size:clamp(52px,13vw,80px);color:#ffffff;letter-spacing:6px;line-height:1;margin-bottom:12px;position:relative;z-index:1;display:block;width:100%;}
 .pangram-info{font-size:15px;color:rgba(255,255,255,.92);position:relative;z-index:1;}
 .pangram-extra{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px;position:relative;z-index:1;}
@@ -672,7 +672,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(248,250,252,.96);backdrop-
 .cta-btn:hover{background:#f0fdf4;}
 
 /* ===== FAQ ===== */
-.faq-section{margin:40px 0;}
+.faq-section{margin:36px 0 40px;}
 .faq-item{border-bottom:1px solid var(--cream-border);padding:13px 0;}
 .faq-q{width:100%;text-align:left;background:none;border:none;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;color:var(--s800);padding:0;line-height:1.4;}
 .faq-chev{color:var(--s500);flex-shrink:0;transition:transform .18s;display:block;}
@@ -690,8 +690,8 @@ ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important;}
 /* ===== SHARE BOX — white card, 7 circle buttons, centered, NO gradient, NO QR ===== */
 .share-strip{margin:36px auto 48px;padding:32px 28px;background:#ffffff;border:1.5px solid var(--s200);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center;}
 .share-strip-lbl{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#b45309;margin:0 0 6px;display:block;}
-.share-strip-sub{font-size:14px;color:var(--s600);margin:0 0 18px;line-height:1.5;display:block;text-transform:none;}
-.share-btns{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;}
+.share-strip-sub{font-size:15px;color:var(--s600);margin:0 0 18px;line-height:1.5;display:block;text-transform:none!important;}
+.share-btns{display:inline-flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;}
 .sbn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:transform .12s,box-shadow .12s;border:none;flex-shrink:0;color:#fff;}
 .sbn:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(0,0,0,.2);}
 .sbn-native{background:#f59e0b;}
@@ -722,7 +722,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
 @media(max-width:768px){
   body{background:#f1f5f9;}
   .page{padding:20px 16px 96px;}
-  footer{background:#fff;border-top:2px solid #e2e8f0;padding:28px 16px 20px;margin-top:32px;}
+  footer{background:#fff;border-top:2px solid #e2e8f0;padding:28px 16px 20px;margin-top:16px;}
   .foot-inner{flex-direction:column;flex-wrap:wrap;gap:16px;}
   .foot-col{min-width:unset;width:100%;}
   nav{background:rgba(248,250,252,.98);}
@@ -733,6 +733,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   .stats-unified{grid-template-columns:1fr 1fr;}
   .cta-card{flex-direction:column;}
   /* Share: allow wrap on very small screens, keep centered */
+  .share-strip{margin-bottom:0;}
   .share-btns{gap:8px;flex-wrap:wrap;justify-content:center;}
   .sbn{width:40px;height:40px;}
   .word-grid{gap:6px;}
@@ -745,7 +746,7 @@ footer{background:#fff;color:#475569;border-top:2px solid #e2e8f0;padding:40px 2
   .word-sections{max-height:none;overflow-y:visible;padding-bottom:8px;}
   .word-fade-overlay{display:none;}
   /* Puzzle summary tweaks */
-  .puzzle-summary{padding:18px 16px;}
+  .puzzle-summary{padding:20px 18px;}
   .puzzle-summary p{font-size:14px;}
 }
 @media(max-width:400px){
